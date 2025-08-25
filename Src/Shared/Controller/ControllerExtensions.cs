@@ -1,6 +1,6 @@
 using System.Linq;
 
-namespace WalletProject.Shared.Controller
+namespace Src.Shared.Controller
 {
     public static class ControllerExtensions
     {

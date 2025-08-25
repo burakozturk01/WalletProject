@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace WalletProject.Shared.DTO
+namespace Src.Shared.DTO
 {
     public class PaginateDTO
     {

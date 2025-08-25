@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using Microsoft.AspNetCore.Mvc;
-using WalletProject.Shared.DTO;
-using WalletProject.Shared.Repository;
+using Src.Shared.DTO;
+using Src.Shared.Repository;
 
-namespace WalletProject.Shared.Controller
+namespace Src.Shared.Controller
 {
-    public abstract class AppController<TEntity, TReadDTO> : ControllerBase
+    public abstract class AppController<TEntity, TReadDTO> : ControllerBase where TEntity : class
     {
         protected readonly IRepository<TEntity, TReadDTO> _repository;
 

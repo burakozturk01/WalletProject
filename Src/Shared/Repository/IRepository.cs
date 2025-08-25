@@ -2,9 +2,9 @@ using System;
 using System.Linq;
 using System.Linq.Expressions;
 
-namespace WalletProject.Shared.Repository
+namespace Src.Shared.Repository
 {
-    public interface IRepository<TEntity, TReadDTO>
+    public interface IRepository<TEntity, TReadDTO> where TEntity : class
     {
         TReadDTO ParseToRead(TEntity entity);
 

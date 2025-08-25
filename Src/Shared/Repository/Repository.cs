@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using WalletProject.Database;
+using Src.Database;
 
-namespace WalletProject.Shared.Repository
+namespace Src.Shared.Repository
 {
-    public abstract class Repository<TEntity, TReadDTO> : IRepository<TEntity, TReadDTO> where TEntity : IBaseEntity
+    public abstract class Repository<TEntity, TReadDTO> : IRepository<TEntity, TReadDTO> where TEntity : class, IBaseEntity
     {
         protected readonly AppDbContext _context;
 

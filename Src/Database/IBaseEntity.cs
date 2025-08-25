@@ -1,7 +1,13 @@
-namespace WalletProject.Database
+using System;
+
+namespace Src.Database
 {
-    public class IBaseEntity 
+    public interface IBaseEntity 
     {
-        public int Id { get; set; }
+        Guid Id { get; set; }
+        DateTime CreatedAt { get; set; }
+        DateTime UpdatedAt { get; set; }
+        bool IsDeleted { get; set; }
+        DateTime? DeletedAt { get; set; }
     }
 }

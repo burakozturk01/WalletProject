@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace WalletProject.Shared.DTO
+namespace Src.Shared.DTO
 {
     public class ListReadDTO<TReadDTO>
     {
