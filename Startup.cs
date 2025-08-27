@@ -5,6 +5,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Src.Database;
+using Src.Repositories;
+using Src.Controllers;
+using Src.Entities;
+using Src.Shared.Repository;
 
 namespace WalletProject
 {
@@ -23,6 +27,11 @@ namespace WalletProject
             // Configure Entity Framework
             services.AddDbContext<AppDbContext>(options =>
                 options.UseSqlite(Configuration.GetConnectionString("DefaultConnection")));
+
+            // Register repositories
+            services.AddScoped<IRepository<User, UserReadDTO>, UserRepository>();
+            services.AddScoped<IRepository<Account, AccountReadDTO>, AccountRepository>();
+            services.AddScoped<IRepository<Transaction, TransactionReadDTO>, TransactionRepository>();
 
             services.AddControllersWithViews();
 

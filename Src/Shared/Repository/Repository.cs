@@ -18,7 +18,7 @@ namespace Src.Shared.Repository
 
         public abstract TReadDTO ParseToRead(TEntity entity);
 
-        public IQueryable<TEntity> Get(out int count)
+        public virtual IQueryable<TEntity> Get(out int count)
         {
             IQueryable<TEntity> entities = _context.Set<TEntity>().OrderBy(entity => entity.Id);
             count = entities.Count();
@@ -26,12 +26,12 @@ namespace Src.Shared.Repository
             return entities;
         }
 
-        public TEntity Find(Expression<Func<TEntity, bool>> predicate)
+        public virtual TEntity Find(Expression<Func<TEntity, bool>> predicate)
         {
             return _context.Set<TEntity>().FirstOrDefault(predicate);
         }
 
-        public IQueryable<TEntity> Find(Expression<Func<TEntity, bool>> predicate, out int count)
+        public virtual IQueryable<TEntity> Find(Expression<Func<TEntity, bool>> predicate, out int count)
         {
             IQueryable<TEntity> entities = _context.Set<TEntity>()
                 .OrderBy(entity => entity.Id)
@@ -54,7 +54,11 @@ namespace Src.Shared.Repository
 
         public void Remove(TEntity entity)
         {
-            _context.Set<TEntity>().Remove(entity);
+            // Soft delete: mark as deleted instead of removing from database
+            entity.IsDeleted = true;
+            entity.DeletedAt = DateTime.UtcNow;
+            entity.UpdatedAt = DateTime.UtcNow;
+            _context.Set<TEntity>().Update(entity);
         }
 
         public void Update<TData>(TEntity entity, TData data)

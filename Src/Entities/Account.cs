@@ -17,7 +17,7 @@ namespace Src.Entities
         public Guid UserId { get; set; }
 
         [Required]
-        public bool IsDefault { get; set; }
+        public bool IsMain { get; set; }
 
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }

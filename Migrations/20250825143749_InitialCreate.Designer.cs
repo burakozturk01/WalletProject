@@ -11,7 +11,7 @@ using Src.Database;
 namespace WalletProject.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250825130625_InitialCreate")]
+    [Migration("20250825143749_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -150,10 +150,10 @@ namespace WalletProject.Migrations
                     b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("TEXT");
 
-                    b.Property<bool>("IsDefault")
+                    b.Property<bool>("IsDeleted")
                         .HasColumnType("INTEGER");
 
-                    b.Property<bool>("IsDeleted")
+                    b.Property<bool>("IsMain")
                         .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("UpdatedAt")
