@@ -139,21 +139,21 @@ namespace Src.Controllers
 
             // Validate source requirements
             if (createDto.SourceType == SourceType.ACCOUNT && createDto.SourceAccountId == null)
-                return BadRequest("SourceAccountId is required when SourceType is ACCOUNT");
+                return BadRequest(new { error = "SourceAccountId is required when SourceType is ACCOUNT" });
             
             if (createDto.SourceType == SourceType.IBAN && string.IsNullOrEmpty(createDto.SourceIban))
-                return BadRequest("SourceIban is required when SourceType is IBAN");
+                return BadRequest(new { error = "SourceIban is required when SourceType is IBAN" });
 
             // Validate destination requirements
             if (createDto.DestinationType == DestinationType.ACCOUNT && createDto.DestinationAccountId == null)
-                return BadRequest("DestinationAccountId is required when DestinationType is ACCOUNT");
+                return BadRequest(new { error = "DestinationAccountId is required when DestinationType is ACCOUNT" });
             
             if (createDto.DestinationType == DestinationType.IBAN && string.IsNullOrEmpty(createDto.DestinationIban))
-                return BadRequest("DestinationIban is required when DestinationType is IBAN");
+                return BadRequest(new { error = "DestinationIban is required when DestinationType is IBAN" });
 
             // Validate amount
             if (createDto.Amount <= 0)
-                return BadRequest("Transaction amount must be greater than zero");
+                return BadRequest(new { error = "Transaction amount must be greater than zero" });
 
             using var dbTransaction = _context.Database.BeginTransaction();
             try
@@ -170,13 +170,13 @@ namespace Src.Controllers
                         .FirstOrDefault();
                     
                     if (sourceAccount == null)
-                        return BadRequest("Source account not found or has been deleted");
+                        return BadRequest(new { error = "Source account not found or has been deleted" });
                     
                     if (sourceAccount.CoreDetails == null)
-                        return BadRequest("Source account does not have core details configured");
+                        return BadRequest(new { error = "Source account does not have core details configured" });
                     
                     if (sourceAccount.CoreDetails.Balance < createDto.Amount)
-                        return BadRequest($"Insufficient funds. Available balance: ${sourceAccount.CoreDetails.Balance:F2}, Required: ${createDto.Amount:F2}");
+                        return BadRequest(new { error = $"Insufficient funds. Available balance: ${sourceAccount.CoreDetails.Balance:F2}, Required: ${createDto.Amount:F2}" });
                 }
 
                 // Get destination account if applicable
@@ -188,15 +188,15 @@ namespace Src.Controllers
                         .FirstOrDefault();
                     
                     if (destinationAccount == null)
-                        return BadRequest("Destination account not found or has been deleted");
+                        return BadRequest(new { error = "Destination account not found or has been deleted" });
                     
                     if (destinationAccount.CoreDetails == null)
-                        return BadRequest("Destination account does not have core details configured");
+                        return BadRequest(new { error = "Destination account does not have core details configured" });
                 }
 
                 // Prevent transfers to the same account
                 if (sourceAccount != null && destinationAccount != null && sourceAccount.Id == destinationAccount.Id)
-                    return BadRequest("Cannot transfer money to the same account");
+                    return BadRequest(new { error = "Cannot transfer money to the same account" });
 
                 var transaction = new Transaction
                 {
@@ -253,7 +253,7 @@ namespace Src.Controllers
                     .FirstOrDefault();
 
                 if (createdTransaction == null)
-                    return StatusCode(500, "Transaction was created but could not be retrieved");
+                    return StatusCode(500, new { error = "Transaction was created but could not be retrieved" });
 
                 var readDto = new TransactionReadDTO
                 {
@@ -280,7 +280,7 @@ namespace Src.Controllers
             catch (Exception ex)
             {
                 dbTransaction.Rollback();
-                return StatusCode(500, $"An error occurred while processing the transaction: {ex.Message}");
+                return StatusCode(500, new { error = $"An error occurred while processing the transaction: {ex.Message}" });
             }
         }
 

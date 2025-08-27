@@ -211,7 +211,7 @@ namespace Src.Controllers
                 var existingMainAccount = _repository.Find(a => a.UserId == createDto.UserId && a.IsMain);
                 if (existingMainAccount != null)
                 {
-                    return BadRequest("User already has a main account. Only one main account is allowed per user.");
+                    return BadRequest(new { error = "User already has a main account. Only one main account is allowed per user." });
                 }
             }
 
@@ -290,13 +290,13 @@ namespace Src.Controllers
             var account = _repository.Find(a => a.Id == id);
             if (account == null)
             {
-                return NotFound("Account not found.");
+                return NotFound(new { error = "Account not found." });
             }
 
             // Prevent modification of main accounts (!IsMain means it's mutable)
             if (account.IsMain)
             {
-                return BadRequest("Main accounts cannot be modified.");
+                return BadRequest(new { error = "Main accounts cannot be modified." });
             }
 
             // Prevent changing IsMain to true if user already has a main account
@@ -305,7 +305,7 @@ namespace Src.Controllers
                 var existingMainAccount = _repository.Find(a => a.UserId == updateDto.UserId && a.IsMain && a.Id != id);
                 if (existingMainAccount != null)
                 {
-                    return BadRequest("User already has a main account. Only one main account is allowed per user.");
+                    return BadRequest(new { error = "User already has a main account. Only one main account is allowed per user." });
                 }
             }
 
@@ -380,19 +380,19 @@ namespace Src.Controllers
 
             if (account == null)
             {
-                return NotFound("Account not found or has already been deleted.");
+                return NotFound(new { error = "Account not found or has already been deleted." });
             }
 
             // Prevent deletion of main accounts - they are permanent
             if (account.IsMain)
             {
-                return BadRequest("Main accounts cannot be deleted.");
+                return BadRequest(new { error = "Main accounts cannot be deleted." });
             }
 
             // Check if account has zero balance
             if (account.CoreDetails != null && account.CoreDetails.Balance != 0)
             {
-                return BadRequest($"Account cannot be deleted because it has a non-zero balance of ${account.CoreDetails.Balance:F2}. Please transfer all funds before deleting the account.");
+                return BadRequest(new { error = $"Account cannot be deleted because it has a non-zero balance of ${account.CoreDetails.Balance:F2}. Please transfer all funds before deleting the account." });
             }
 
             return RemoveEntity(a => a.Id == id);
