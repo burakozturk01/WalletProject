@@ -97,6 +97,38 @@ namespace WalletProject.Tests
 
                 Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
             }
+
+            [Fact]
+            public async Task CreateUser_InvalidEmail_ReturnsBadRequest()
+            {
+                var user = new UserCreateDTO
+                {
+                    Username = "testuser_invalid_email",
+                    Email = "invalid-email",
+                    Password = "password123"
+                };
+
+                var content = Utilities.GetStringContent(user);
+                var response = await _client.PostAsync("/api/user", content);
+
+                Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            }
+
+            [Fact]
+            public async Task CreateUser_ShortPassword_ReturnsBadRequest()
+            {
+                var user = new UserCreateDTO
+                {
+                    Username = "testuser_short_pass",
+                    Email = "testuser_short_pass@example.com",
+                    Password = "123"
+                };
+
+                var content = Utilities.GetStringContent(user);
+                var response = await _client.PostAsync("/api/user", content);
+
+                Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            }
         }
 
         public class ReadingTests : IClassFixture<TestWebAppFactory<Startup>>
@@ -172,6 +204,82 @@ namespace WalletProject.Tests
 
                 Assert.Equal(updateUser.Username, updatedUser.Username);
             }
+
+            [Fact]
+            public async Task UpdateUser_EmailConflict_ReturnsBadRequest()
+            {
+                // Create first user
+                var user1 = new UserCreateDTO
+                {
+                    Username = "testuser_update1",
+                    Email = "testuser_update1@example.com",
+                    Password = "password"
+                };
+
+                var content1 = Utilities.GetStringContent(user1);
+                await _client.PostAsync("/api/user", content1);
+
+                // Create second user
+                var user2 = new UserCreateDTO
+                {
+                    Username = "testuser_update2",
+                    Email = "testuser_update2@example.com",
+                    Password = "password"
+                };
+
+                var content2 = Utilities.GetStringContent(user2);
+                var response2 = await _client.PostAsync("/api/user", content2);
+                var createdUser2 = await Utilities.GetDeserializedContent<UserReadDTO>(response2);
+
+                // Try to update second user's email to first user's email
+                var updateUser = new UserUpdateDTO
+                {
+                    Email = "testuser_update1@example.com"
+                };
+
+                var updateContent = Utilities.GetStringContent(updateUser);
+                var updateResponse = await _client.PutAsync($"/api/user/{createdUser2.Id}", updateContent);
+
+                Assert.Equal(HttpStatusCode.BadRequest, updateResponse.StatusCode);
+            }
+
+            [Fact]
+            public async Task UpdateUser_UsernameConflict_ReturnsBadRequest()
+            {
+                // Create first user
+                var user1 = new UserCreateDTO
+                {
+                    Username = "testuser_update3",
+                    Email = "testuser_update3@example.com",
+                    Password = "password"
+                };
+
+                var content1 = Utilities.GetStringContent(user1);
+                await _client.PostAsync("/api/user", content1);
+
+                // Create second user
+                var user2 = new UserCreateDTO
+                {
+                    Username = "testuser_update4",
+                    Email = "testuser_update4@example.com",
+                    Password = "password"
+                };
+
+                var content2 = Utilities.GetStringContent(user2);
+                var response2 = await _client.PostAsync("/api/user", content2);
+                var createdUser2 = await Utilities.GetDeserializedContent<UserReadDTO>(response2);
+
+                // Try to update second user's username to first user's username
+                var updateUser = new UserUpdateDTO
+                {
+                    Username = "testuser_update3"
+                };
+
+                var updateContent = Utilities.GetStringContent(updateUser);
+                var updateResponse = await _client.PutAsync($"/api/user/{createdUser2.Id}", updateContent);
+
+                Assert.Equal(HttpStatusCode.BadRequest, updateResponse.StatusCode);
+            }
         }
 
         public class DeletionTests : IClassFixture<TestWebAppFactory<Startup>>
@@ -234,6 +342,149 @@ namespace WalletProject.Tests
 
                 var deleteResponse = await _client.DeleteAsync($"/api/user/{createdUser.Id}");
                 Assert.Equal(HttpStatusCode.BadRequest, deleteResponse.StatusCode);
+            }
+
+            [Fact]
+            public async Task DeleteUser_UserWithTransactionHistory_ReturnsOk()
+            {
+                var user = new UserCreateDTO
+                {
+                    Username = "testuser_transaction_history",
+                    Email = "testuser_transaction_history@example.com",
+                    Password = "password"
+                };
+
+                var content = Utilities.GetStringContent(user);
+                var response = await _client.PostAsync("/api/user", content);
+                var createdUser = await Utilities.GetDeserializedContent<UserReadDTO>(response);
+
+                // Create two accounts
+                var account1 = new AccountCreateDTO
+                {
+                    UserId = createdUser.Id,
+                    IsMain = false,
+                    CoreDetails = new CoreDetailsCreateDTO
+                    {
+                        Name = "Source Account",
+                        Balance = 100
+                    }
+                };
+
+                var accountContent1 = Utilities.GetStringContent(account1);
+                var response1 = await _client.PostAsync("/api/account", accountContent1);
+                var createdAccount1 = await Utilities.GetDeserializedContent<AccountReadDTO>(response1);
+
+                var account2 = new AccountCreateDTO
+                {
+                    UserId = createdUser.Id,
+                    IsMain = false,
+                    CoreDetails = new CoreDetailsCreateDTO
+                    {
+                        Name = "Destination Account",
+                        Balance = 0
+                    }
+                };
+
+                var accountContent2 = Utilities.GetStringContent(account2);
+                var response2 = await _client.PostAsync("/api/account", accountContent2);
+                var createdAccount2 = await Utilities.GetDeserializedContent<AccountReadDTO>(response2);
+
+                // Create transaction to move all money to second account
+                var transaction = new TransactionCreateDTO
+                {
+                    SourceType = Src.Entities.SourceType.ACCOUNT,
+                    SourceAccountId = createdAccount1.Id,
+                    DestinationType = Src.Entities.DestinationType.ACCOUNT,
+                    DestinationAccountId = createdAccount2.Id,
+                    Amount = 100,
+                    Description = "Transfer all funds"
+                };
+
+                var transactionContent = Utilities.GetStringContent(transaction);
+                await _client.PostAsync("/api/transaction", transactionContent);
+
+                // Create another transaction to move money back (so both accounts have zero balance)
+                var transaction2 = new TransactionCreateDTO
+                {
+                    SourceType = Src.Entities.SourceType.ACCOUNT,
+                    SourceAccountId = createdAccount2.Id,
+                    DestinationType = Src.Entities.DestinationType.SPEND,
+                    Amount = 100,
+                    Description = "Spend all funds"
+                };
+
+                var transactionContent2 = Utilities.GetStringContent(transaction2);
+                await _client.PostAsync("/api/transaction", transactionContent2);
+
+                // Now delete user should succeed even with transaction history
+                var deleteResponse = await _client.DeleteAsync($"/api/user/{createdUser.Id}");
+                deleteResponse.EnsureSuccessStatusCode();
+
+                var getResponse = await _client.GetAsync($"/api/user/{createdUser.Id}");
+                Assert.Equal(HttpStatusCode.NotFound, getResponse.StatusCode);
+            }
+        }
+
+        public class BalanceTests : IClassFixture<TestWebAppFactory<Startup>>
+        {
+            private readonly HttpClient _client;
+
+            public BalanceTests(TestWebAppFactory<Startup> factory)
+            {
+                _client = factory.CreateClient();
+            }
+
+            [Fact]
+            public async Task GetUserTotalBalance_MultipleAccounts_ReturnsCorrectTotal()
+            {
+                var user = new UserCreateDTO
+                {
+                    Username = "testuser_balance",
+                    Email = "testuser_balance@example.com",
+                    Password = "password"
+                };
+
+                var content = Utilities.GetStringContent(user);
+                var response = await _client.PostAsync("/api/user", content);
+                var createdUser = await Utilities.GetDeserializedContent<UserReadDTO>(response);
+
+                // Create multiple accounts with different balances
+                var account1 = new AccountCreateDTO
+                {
+                    UserId = createdUser.Id,
+                    IsMain = false,
+                    CoreDetails = new CoreDetailsCreateDTO
+                    {
+                        Name = "Savings",
+                        Balance = 500
+                    }
+                };
+
+                var accountContent1 = Utilities.GetStringContent(account1);
+                await _client.PostAsync("/api/account", accountContent1);
+
+                var account2 = new AccountCreateDTO
+                {
+                    UserId = createdUser.Id,
+                    IsMain = false,
+                    CoreDetails = new CoreDetailsCreateDTO
+                    {
+                        Name = "Checking",
+                        Balance = 250.50m
+                    }
+                };
+
+                var accountContent2 = Utilities.GetStringContent(account2);
+                await _client.PostAsync("/api/account", accountContent2);
+
+                // Get total balance
+                var balanceResponse = await _client.GetAsync($"/api/user/{createdUser.Id}/total-balance");
+                balanceResponse.EnsureSuccessStatusCode();
+                var balanceData = await Utilities.GetDeserializedContent<UserTotalBalanceDTO>(balanceResponse);
+
+                Assert.Equal(750.50m, balanceData.TotalBalance);
+                Assert.Equal(3, balanceData.AccountCount); // Including main account
+                Assert.Equal(3, balanceData.ActiveAccountCount);
             }
         }
     }

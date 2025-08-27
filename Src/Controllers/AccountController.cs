@@ -205,17 +205,26 @@ namespace Src.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            // Prevent creating multiple main accounts for the same user
-            if (createDto.IsMain)
+            try
             {
-                var existingMainAccount = _repository.Find(a => a.UserId == createDto.UserId && a.IsMain);
-                if (existingMainAccount != null)
+                // Validate that the user exists
+                var userExists = _context.Users.Any(u => u.Id == createDto.UserId && !u.IsDeleted);
+                if (!userExists)
                 {
-                    return BadRequest(new { error = "User already has a main account. Only one main account is allowed per user." });
+                    return BadRequest("Invalid user ID. The specified user does not exist.");
                 }
-            }
 
-            var account = new Account
+                // Prevent creating multiple main accounts for the same user
+                if (createDto.IsMain)
+                {
+                    var existingMainAccount = _repository.Find(a => a.UserId == createDto.UserId && a.IsMain);
+                    if (existingMainAccount != null)
+                    {
+                        return BadRequest(new { error = "User already has a main account. Only one main account is allowed per user." });
+                    }
+                }
+
+                var account = new Account
             {
                 Id = Guid.NewGuid(),
                 UserId = createDto.UserId,
@@ -277,7 +286,17 @@ namespace Src.Controllers
                 };
             }
 
-            return CreateEntity(account);
+                return CreateEntity(account);
+            }
+            catch (Exception ex)
+            {
+                if (ex.Message.Contains("FOREIGN KEY constraint failed") || ex.InnerException?.Message.Contains("FOREIGN KEY constraint failed") == true)
+                {
+                    return BadRequest("Invalid user ID. The specified user does not exist.");
+                }
+                
+                return BadRequest($"An error occurred while creating the account: {ex.Message}");
+            }
         }
 
         [HttpPut("{id}")]

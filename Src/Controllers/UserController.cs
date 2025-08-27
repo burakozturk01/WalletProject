@@ -197,10 +197,50 @@ namespace Src.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            return UpdateEntity(updateDto, u => u.Id == id, entity =>
+            try
             {
-                entity.UpdatedAt = DateTime.UtcNow;
-            });
+                // Check if user exists
+                var existingUser = _repository.Find(u => u.Id == id);
+                if (existingUser == null)
+                    return NotFound("User not found");
+
+                var userRepository = _repository as UserRepository;
+
+                // Check for email conflict if email is being updated
+                if (!string.IsNullOrEmpty(updateDto.Email) && updateDto.Email != existingUser.Email)
+                {
+                    var existingUserByEmail = userRepository?.FindAll(u => u.Email == updateDto.Email && u.Id != id);
+                    if (existingUserByEmail != null)
+                    {
+                        return BadRequest("Email already exists. Please use a different email address.");
+                    }
+                }
+
+                // Check for username conflict if username is being updated
+                if (!string.IsNullOrEmpty(updateDto.Username) && updateDto.Username != existingUser.Username)
+                {
+                    var existingUserByUsername = userRepository?.FindAll(u => u.Username == updateDto.Username && u.Id != id);
+                    if (existingUserByUsername != null)
+                    {
+                        return BadRequest("Username already exists. Please choose a different username.");
+                    }
+                }
+
+                return UpdateEntity(updateDto, u => u.Id == id, entity =>
+                {
+                    entity.UpdatedAt = DateTime.UtcNow;
+                });
+            }
+            catch (Exception ex)
+            {
+                // Handle any other database errors
+                if (ex.Message.Contains("UNIQUE constraint failed") || ex.InnerException?.Message.Contains("UNIQUE constraint failed") == true)
+                {
+                    return BadRequest("Username or email already exists. Please use different values.");
+                }
+                
+                return BadRequest($"An error occurred while updating the user: {ex.Message}");
+            }
         }
 
         [HttpGet("{id}/total-balance")]
