@@ -9,6 +9,7 @@ using Src.Shared.Controller;
 using Src.Shared.DTO;
 using Src.Shared.Repository;
 using Src.Database;
+using Src.Repositories;
 
 namespace Src.Controllers
 {
@@ -28,8 +29,6 @@ namespace Src.Controllers
         public DateTime Timestamp { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
-        public bool IsDeleted { get; set; }
-        public DateTime? DeletedAt { get; set; }
     }
 
     public class TransactionCreateDTO
@@ -69,31 +68,65 @@ namespace Src.Controllers
 
     [ApiController]
     [Route("api/[controller]")]
-    public class TransactionController : AppController<Transaction, TransactionReadDTO>
+    public class TransactionController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly ITransactionRepository _repository;
 
-        public TransactionController(IRepository<Transaction, TransactionReadDTO> repository, AppDbContext context) : base(repository)
+        public TransactionController(ITransactionRepository repository, AppDbContext context)
         {
+            _repository = repository;
             _context = context;
         }
 
         [HttpGet]
         public ActionResult<ListReadDTO<TransactionReadDTO>> GetTransactions([FromQuery] PaginateDTO paginate)
         {
-            return GetEntities(paginate);
+            var transactions = _repository.Get(out int totalCount);
+            
+            if (paginate.Skip > 0)
+                transactions = transactions.Skip(paginate.Skip);
+            
+            if (paginate.Limit > 0)
+                transactions = transactions.Take(paginate.Limit);
+
+            var transactionDtos = transactions.Select(t => _repository.ParseToRead(t)).ToList();
+
+            return Ok(new ListReadDTO<TransactionReadDTO>
+            {
+                Data = transactionDtos,
+                Total = totalCount
+            });
         }
 
         [HttpGet("{id}")]
         public ActionResult<TransactionReadDTO> GetTransaction(Guid id)
         {
-            return FindEntity(t => t.Id == id);
+            var transaction = _repository.Find(t => t.Id == id);
+            if (transaction == null)
+                return NotFound();
+
+            return Ok(_repository.ParseToRead(transaction));
         }
 
         [HttpGet("account/{accountId}")]
         public ActionResult<ListReadDTO<TransactionReadDTO>> GetTransactionsByAccount(Guid accountId, [FromQuery] PaginateDTO paginate)
         {
-            return FindEntities(paginate, t => t.SourceAccountId == accountId || t.DestinationAccountId == accountId);
+            var transactions = _repository.Find(t => t.SourceAccountId == accountId || t.DestinationAccountId == accountId, out int totalCount);
+            
+            if (paginate.Skip > 0)
+                transactions = transactions.Skip(paginate.Skip);
+            
+            if (paginate.Limit > 0)
+                transactions = transactions.Take(paginate.Limit);
+
+            var transactionDtos = transactions.Select(t => _repository.ParseToRead(t)).ToList();
+
+            return Ok(new ListReadDTO<TransactionReadDTO>
+            {
+                Data = transactionDtos,
+                Total = totalCount
+            });
         }
 
         [HttpPost]
@@ -179,8 +212,7 @@ namespace Src.Controllers
                     Description = createDto.Description,
                     Timestamp = createDto.Timestamp ?? DateTime.UtcNow,
                     CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow,
-                    IsDeleted = false
+                    UpdatedAt = DateTime.UtcNow
                 };
 
                 // Update account balances
@@ -207,8 +239,12 @@ namespace Src.Controllers
                 var createdTransaction = _context.Transactions
                     .Include(t => t.SourceAccount)
                         .ThenInclude(a => a.CoreDetails)
+                    .Include(t => t.SourceAccount)
+                        .ThenInclude(a => a.User) // Include deleted users for reference
                     .Include(t => t.DestinationAccount)
                         .ThenInclude(a => a.CoreDetails)
+                    .Include(t => t.DestinationAccount)
+                        .ThenInclude(a => a.User) // Include deleted users for reference
                     .Where(t => t.Id == transaction.Id)
                     .FirstOrDefault();
 
@@ -230,9 +266,7 @@ namespace Src.Controllers
                     Description = createdTransaction.Description,
                     Timestamp = createdTransaction.Timestamp,
                     CreatedAt = createdTransaction.CreatedAt,
-                    UpdatedAt = createdTransaction.UpdatedAt,
-                    IsDeleted = createdTransaction.IsDeleted,
-                    DeletedAt = createdTransaction.DeletedAt
+                    UpdatedAt = createdTransaction.UpdatedAt
                 };
 
                 return Ok(readDto);
@@ -244,10 +278,5 @@ namespace Src.Controllers
             }
         }
 
-        [HttpDelete("{id}")]
-        public ActionResult DeleteTransaction(Guid id)
-        {
-            return RemoveEntity(t => t.Id == id);
-        }
     }
 }

@@ -68,21 +68,18 @@ export function DatabaseTester() {
 
   const refreshData = async () => {
     try {
-      // Fetch users
-      const usersResponse = await fetch('/api/user?skip=0&limit=100');
+      const usersResponse = await fetch('/api/user/admin/all?skip=0&limit=100');
       if (usersResponse.ok) {
         const usersData = await usersResponse.json();
         setUsers(usersData.data || []);
       }
 
-      // Fetch accounts
-      const accountsResponse = await fetch('/api/account?skip=0&limit=100');
+      const accountsResponse = await fetch('/api/account/admin/all?skip=0&limit=100');
       if (accountsResponse.ok) {
         const accountsData = await accountsResponse.json();
         setAccounts(accountsData.data || []);
       }
 
-      // Fetch transactions
       const transactionsResponse = await fetch('/api/transaction?skip=0&limit=100');
       if (transactionsResponse.ok) {
         const transactionsData = await transactionsResponse.json();

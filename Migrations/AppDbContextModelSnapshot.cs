@@ -178,9 +178,6 @@ namespace WalletProject.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("TEXT");
-
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(500)
@@ -198,9 +195,6 @@ namespace WalletProject.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<int>("DestinationType")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<bool>("IsDeleted")
                         .HasColumnType("INTEGER");
 
                     b.Property<Guid?>("SourceAccountId")

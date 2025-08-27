@@ -1,5 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User } from './DatabaseTester';
+
+interface UserTotalBalance {
+  userId: string;
+  totalBalance: number;
+  accountCount: number;
+  activeAccountCount: number;
+}
 
 interface UserManagerProps {
   users: User[];
@@ -15,6 +22,53 @@ export function UserManager({ users, onRefresh }: UserManagerProps) {
   });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+  const [userBalances, setUserBalances] = useState<Record<string, UserTotalBalance>>({});
+  const [balanceLoading, setBalanceLoading] = useState(false);
+
+  // Fetch total balances for all users
+  const fetchUserBalances = async () => {
+    setBalanceLoading(true);
+    const balances: Record<string, UserTotalBalance> = {};
+    
+    try {
+      await Promise.all(
+        users.filter(u => !u.isDeleted).map(async (user) => {
+          try {
+            const response = await fetch(`/api/user/${user.id}/total-balance`);
+            if (response.ok) {
+              const balance = await response.json();
+              balances[user.id] = balance;
+            }
+          } catch (error) {
+            console.error(`Failed to fetch balance for user ${user.id}:`, error);
+          }
+        })
+      );
+      setUserBalances(balances);
+    } catch (error) {
+      console.error('Error fetching user balances:', error);
+    } finally {
+      setBalanceLoading(false);
+    }
+  };
+
+  // Fetch balances when users change or component mounts
+  useEffect(() => {
+    if (users.length > 0) {
+      fetchUserBalances();
+    }
+  }, [users]);
+
+  // Auto-refresh balances every 30 seconds for dynamic updates
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (users.length > 0) {
+        fetchUserBalances();
+      }
+    }, 30000); // 30 seconds
+
+    return () => clearInterval(interval);
+  }, [users]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,6 +89,8 @@ export function UserManager({ users, onRefresh }: UserManagerProps) {
         setFormData({ username: '', email: '', password: '' });
         setShowCreateForm(false);
         onRefresh();
+        // Refresh balances after creating a new user
+        setTimeout(fetchUserBalances, 1000);
       } else {
         const error = await response.text();
         setMessage(`Error: ${error}`);
@@ -58,6 +114,8 @@ export function UserManager({ users, onRefresh }: UserManagerProps) {
       if (response.ok) {
         setMessage('User deleted successfully!');
         onRefresh();
+        // Refresh balances after deleting a user
+        setTimeout(fetchUserBalances, 1000);
       } else {
         const error = await response.text();
         setMessage(`Error: ${error}`);
@@ -96,6 +154,13 @@ export function UserManager({ users, onRefresh }: UserManagerProps) {
           onClick={() => setShowCreateForm(!showCreateForm)}
         >
           {showCreateForm ? 'Cancel' : 'Create User'}
+        </button>
+        <button
+          style={{ ...buttonStyle, backgroundColor: '#17a2b8', color: 'white' }}
+          onClick={fetchUserBalances}
+          disabled={balanceLoading}
+        >
+          {balanceLoading ? 'Refreshing...' : 'Refresh Balances'}
         </button>
       </div>
 
@@ -173,6 +238,8 @@ export function UserManager({ users, onRefresh }: UserManagerProps) {
               <th style={{ padding: '12px', textAlign: 'left', border: '1px solid #dee2e6' }}>ID</th>
               <th style={{ padding: '12px', textAlign: 'left', border: '1px solid #dee2e6' }}>Username</th>
               <th style={{ padding: '12px', textAlign: 'left', border: '1px solid #dee2e6' }}>Email</th>
+              <th style={{ padding: '12px', textAlign: 'left', border: '1px solid #dee2e6' }}>Total Balance</th>
+              <th style={{ padding: '12px', textAlign: 'left', border: '1px solid #dee2e6' }}>Accounts</th>
               <th style={{ padding: '12px', textAlign: 'left', border: '1px solid #dee2e6' }}>Created</th>
               <th style={{ padding: '12px', textAlign: 'left', border: '1px solid #dee2e6' }}>Status</th>
               <th style={{ padding: '12px', textAlign: 'left', border: '1px solid #dee2e6' }}>Actions</th>
@@ -181,57 +248,101 @@ export function UserManager({ users, onRefresh }: UserManagerProps) {
           <tbody>
             {users.length === 0 ? (
               <tr>
-                <td colSpan={6} style={{ padding: '20px', textAlign: 'center', color: '#666' }}>
+                <td colSpan={8} style={{ padding: '20px', textAlign: 'center', color: '#666' }}>
                   No users found. Create your first user!
                 </td>
               </tr>
             ) : (
-              users.map((user) => (
-                <tr key={user.id}>
-                  <td style={{ padding: '12px', border: '1px solid #dee2e6', fontFamily: 'monospace', fontSize: '12px' }}>
-                    {user.id.substring(0, 8)}...
-                  </td>
-                  <td style={{ padding: '12px', border: '1px solid #dee2e6' }}>{user.username}</td>
-                  <td style={{ padding: '12px', border: '1px solid #dee2e6' }}>{user.email}</td>
-                  <td style={{ padding: '12px', border: '1px solid #dee2e6' }}>
-                    {new Date(user.createdAt).toLocaleDateString()}
-                  </td>
-                  <td style={{ padding: '12px', border: '1px solid #dee2e6' }}>
-                    <span style={{
-                      padding: '4px 8px',
-                      borderRadius: '4px',
-                      fontSize: '12px',
-                      backgroundColor: user.isDeleted ? '#f8d7da' : '#d4edda',
-                      color: user.isDeleted ? '#721c24' : '#155724'
-                    }}>
-                      {user.isDeleted ? 'Deleted' : 'Active'}
-                    </span>
-                  </td>
-                  <td style={{ padding: '12px', border: '1px solid #dee2e6' }}>
-                    {!user.isDeleted ? (
-                      <button
-                        style={{ ...buttonStyle, backgroundColor: '#dc3545', color: 'white' }}
-                        onClick={() => handleDelete(user.id)}
-                        disabled={loading}
-                      >
-                        Delete
-                      </button>
-                    ) : (
-                      <span style={{ 
-                        color: '#6c757d', 
-                        fontStyle: 'italic',
-                        fontSize: '12px'
+              users.map((user) => {
+                const balance = userBalances[user.id];
+                return (
+                  <tr key={user.id}>
+                    <td style={{ padding: '12px', border: '1px solid #dee2e6', fontFamily: 'monospace', fontSize: '12px' }}>
+                      {user.id.substring(0, 8)}...
+                    </td>
+                    <td style={{ padding: '12px', border: '1px solid #dee2e6' }}>{user.username}</td>
+                    <td style={{ padding: '12px', border: '1px solid #dee2e6' }}>{user.email}</td>
+                    <td style={{ padding: '12px', border: '1px solid #dee2e6' }}>
+                      {user.isDeleted ? (
+                        <span style={{ color: '#6c757d', fontStyle: 'italic' }}>N/A (Deleted)</span>
+                      ) : balance ? (
+                        <span style={{ 
+                          fontWeight: 'bold',
+                          color: balance.totalBalance >= 0 ? '#28a745' : '#dc3545'
+                        }}>
+                          ${balance.totalBalance.toFixed(2)}
+                        </span>
+                      ) : balanceLoading ? (
+                        <span style={{ color: '#6c757d' }}>Loading...</span>
+                      ) : (
+                        <span style={{ color: '#6c757d' }}>$0.00</span>
+                      )}
+                    </td>
+                    <td style={{ padding: '12px', border: '1px solid #dee2e6' }}>
+                      {user.isDeleted ? (
+                        <span style={{ color: '#6c757d', fontStyle: 'italic' }}>N/A</span>
+                      ) : balance ? (
+                        <span>
+                          {balance.activeAccountCount}/{balance.accountCount}
+                          <span style={{ fontSize: '11px', color: '#6c757d', marginLeft: '4px' }}>
+                            (active/total)
+                          </span>
+                        </span>
+                      ) : (
+                        <span style={{ color: '#6c757d' }}>0/0</span>
+                      )}
+                    </td>
+                    <td style={{ padding: '12px', border: '1px solid #dee2e6' }}>
+                      {new Date(user.createdAt).toLocaleDateString()}
+                    </td>
+                    <td style={{ padding: '12px', border: '1px solid #dee2e6' }}>
+                      <span style={{
+                        padding: '4px 8px',
+                        borderRadius: '4px',
+                        fontSize: '12px',
+                        backgroundColor: user.isDeleted ? '#f8d7da' : '#d4edda',
+                        color: user.isDeleted ? '#721c24' : '#155724'
                       }}>
-                        Deleted on {user.deletedAt ? new Date(user.deletedAt).toLocaleDateString() : 'Unknown'}
+                        {user.isDeleted ? 'Deleted' : 'Active'}
                       </span>
-                    )}
-                  </td>
-                </tr>
-              ))
+                    </td>
+                    <td style={{ padding: '12px', border: '1px solid #dee2e6' }}>
+                      {!user.isDeleted ? (
+                        <button
+                          style={{ ...buttonStyle, backgroundColor: '#dc3545', color: 'white' }}
+                          onClick={() => handleDelete(user.id)}
+                          disabled={loading}
+                        >
+                          Delete
+                        </button>
+                      ) : (
+                        <span style={{ 
+                          color: '#6c757d', 
+                          fontStyle: 'italic',
+                          fontSize: '12px'
+                        }}>
+                          Deleted on {user.deletedAt ? new Date(user.deletedAt).toLocaleDateString() : 'Unknown'}
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>
       </div>
+      
+      {users.filter(u => !u.isDeleted).length > 0 && (
+        <div style={{ 
+          marginTop: '10px', 
+          fontSize: '12px', 
+          color: '#6c757d',
+          textAlign: 'right'
+        }}>
+          Balances auto-refresh every 30 seconds
+        </div>
+      )}
     </div>
   );
 }

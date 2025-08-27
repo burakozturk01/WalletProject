@@ -34,7 +34,6 @@ namespace Src.Database
             // Configure soft delete for entities that implement IBaseEntity
             modelBuilder.Entity<User>().HasQueryFilter(e => !e.IsDeleted);
             modelBuilder.Entity<Account>().HasQueryFilter(e => !e.IsDeleted);
-            modelBuilder.Entity<Transaction>().HasQueryFilter(e => !e.IsDeleted);
             modelBuilder.Entity<CoreDetailsComponent>().HasQueryFilter(e => !e.IsDeleted);
             modelBuilder.Entity<ActiveAccountComponent>().HasQueryFilter(e => !e.IsDeleted);
 
@@ -85,7 +84,6 @@ namespace Src.Database
                     .OnDelete(DeleteBehavior.Restrict);
             });
 
-            // Component configurations with physical delete
             modelBuilder.Entity<SpendingLimitComponent>(entity =>
             {
                 entity.HasOne(c => c.Account)
@@ -118,7 +116,7 @@ namespace Src.Database
         private void UpdateTimestamps()
         {
             var entries = ChangeTracker.Entries()
-                .Where(e => e.Entity is IBaseEntity || e.Entity is IDeletableComponent);
+                .Where(e => e.Entity is IBaseEntity || e.Entity is IDeletableComponent || e.Entity is Transaction);
 
             foreach (var entry in entries)
             {
@@ -136,6 +134,11 @@ namespace Src.Database
                         deletableComponent.CreatedAt = now;
                         deletableComponent.UpdatedAt = now;
                     }
+                    else if (entry.Entity is Transaction transaction)
+                    {
+                        transaction.CreatedAt = now;
+                        transaction.UpdatedAt = now;
+                    }
                 }
                 else if (entry.State == EntityState.Modified)
                 {
@@ -146,6 +149,10 @@ namespace Src.Database
                     else if (entry.Entity is IDeletableComponent deletableComponent)
                     {
                         deletableComponent.UpdatedAt = now;
+                    }
+                    else if (entry.Entity is Transaction transaction)
+                    {
+                        transaction.UpdatedAt = now;
                     }
                 }
             }

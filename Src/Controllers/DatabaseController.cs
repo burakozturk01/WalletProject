@@ -44,11 +44,12 @@ namespace Src.Controllers
         {
             try
             {
-                var userCount = await _context.Users.CountAsync();
-                var accountCount = await _context.Accounts.CountAsync();
-                var transactionCount = await _context.Transactions.CountAsync();
-                var coreDetailsCount = await _context.CoreDetailsComponents.CountAsync();
-                var activeAccountCount = await _context.ActiveAccountComponents.CountAsync();
+                // Show all entities including soft-deleted ones for database tester
+                var userCount = await _context.Users.IgnoreQueryFilters().CountAsync();
+                var accountCount = await _context.Accounts.IgnoreQueryFilters().CountAsync();
+                var transactionCount = await _context.Transactions.IgnoreQueryFilters().CountAsync();
+                var coreDetailsCount = await _context.CoreDetailsComponents.IgnoreQueryFilters().CountAsync();
+                var activeAccountCount = await _context.ActiveAccountComponents.IgnoreQueryFilters().CountAsync();
                 var spendingLimitCount = await _context.SpendingLimitComponents.CountAsync();
                 var savingGoalCount = await _context.SavingGoalComponents.CountAsync();
 

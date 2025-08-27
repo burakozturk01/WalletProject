@@ -11,8 +11,8 @@ using Src.Database;
 namespace WalletProject.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250825143749_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20250827080300_InitialMigration")]
+    partial class InitialMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -181,9 +181,6 @@ namespace WalletProject.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("TEXT");
-
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(500)
@@ -201,9 +198,6 @@ namespace WalletProject.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<int>("DestinationType")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<bool>("IsDeleted")
                         .HasColumnType("INTEGER");
 
                     b.Property<Guid?>("SourceAccountId")

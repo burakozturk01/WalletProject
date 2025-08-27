@@ -1,12 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Src.Entities;
 using Src.Components;
 using Src.Shared.Controller;
 using Src.Shared.DTO;
 using Src.Shared.Repository;
+using Src.Database;
+using Src.Repositories;
 
 namespace Src.Controllers
 {
@@ -114,8 +118,11 @@ namespace Src.Controllers
     [Route("api/[controller]")]
     public class AccountController : AppController<Account, AccountReadDTO>
     {
-        public AccountController(IRepository<Account, AccountReadDTO> repository) : base(repository)
+        private readonly AppDbContext _context;
+
+        public AccountController(IRepository<Account, AccountReadDTO> repository, AppDbContext context) : base(repository)
         {
+            _context = context;
         }
 
         [HttpGet]
@@ -133,6 +140,62 @@ namespace Src.Controllers
         [HttpGet("user/{userId}")]
         public ActionResult<ListReadDTO<AccountReadDTO>> GetAccountsByUser(Guid userId, [FromQuery] PaginateDTO paginate)
         {
+            return FindEntities(paginate, a => a.UserId == userId);
+        }
+
+        // Admin endpoints that show all accounts including deleted ones
+        [HttpGet("admin/all")]
+        public ActionResult<ListReadDTO<AccountReadDTO>> GetAllAccounts([FromQuery] PaginateDTO paginate)
+        {
+            var accountRepository = _repository as AccountRepository;
+            if (accountRepository != null)
+            {
+                var accounts = accountRepository.GetAll(out int total)
+                    .Skip(paginate.Skip)
+                    .Take(paginate.Limit)
+                    .ToList();
+
+                var data = accounts.Select(accountRepository.ParseToRead);
+                return Ok(new ListReadDTO<AccountReadDTO>
+                {
+                    Data = data,
+                    Total = total,
+                });
+            }
+            return GetEntities(paginate);
+        }
+
+        [HttpGet("admin/{id}")]
+        public ActionResult<AccountReadDTO> GetAccountAdmin(Guid id)
+        {
+            var accountRepository = _repository as AccountRepository;
+            if (accountRepository != null)
+            {
+                var account = accountRepository.FindAll(a => a.Id == id);
+                if (account == null) return NotFound();
+                return Ok(accountRepository.ParseToRead(account));
+            }
+            return FindEntity(a => a.Id == id);
+        }
+
+        [HttpGet("admin/user/{userId}")]
+        public ActionResult<ListReadDTO<AccountReadDTO>> GetAllAccountsByUser(Guid userId, [FromQuery] PaginateDTO paginate)
+        {
+            var accountRepository = _repository as AccountRepository;
+            if (accountRepository != null)
+            {
+                var accounts = accountRepository.FindAll(a => a.UserId == userId, out int total)
+                    .Skip(paginate.Skip)
+                    .Take(paginate.Limit)
+                    .ToList();
+
+                var data = accounts.Select(accountRepository.ParseToRead);
+                return Ok(new ListReadDTO<AccountReadDTO>
+                {
+                    Data = data,
+                    Total = total,
+                });
+            }
             return FindEntities(paginate, a => a.UserId == userId);
         }
 
@@ -252,20 +315,84 @@ namespace Src.Controllers
             });
         }
 
+        public (bool Success, string ErrorMessage) DeleteAllAccountsForUser(Guid userId)
+        {
+            // Get all non-deleted accounts for this user with all components
+            var activeAccounts = _context.Accounts
+                .Include(a => a.CoreDetails)
+                .Include(a => a.ActiveAccount)
+                .Include(a => a.SpendingLimit)
+                .Include(a => a.SavingGoal)
+                .Where(a => a.UserId == userId && !a.IsDeleted)
+                .ToList();
+
+            if (activeAccounts.Count == 0)
+                return (false, "No active accounts found for user.");
+
+            // Soft delete all user accounts and their components
+            foreach (var account in activeAccounts)
+            {
+                // Soft delete account components
+                if (account.CoreDetails != null && !account.CoreDetails.IsDeleted)
+                {
+                    account.CoreDetails.IsDeleted = true;
+                    account.CoreDetails.DeletedAt = DateTime.UtcNow;
+                }
+
+                if (account.ActiveAccount != null && !account.ActiveAccount.IsDeleted)
+                {
+                    account.ActiveAccount.IsDeleted = true;
+                    account.ActiveAccount.DeletedAt = DateTime.UtcNow;
+                }
+
+                if (account.SpendingLimit != null)
+                {
+                    // SpendingLimit doesn't inherit from IDeletable, so we remove it
+                    _context.Remove(account.SpendingLimit);
+                }
+
+                if (account.SavingGoal != null)
+                {
+                    // SavingGoal doesn't inherit from IDeletable, so we remove it
+                    _context.Remove(account.SavingGoal);
+                }
+
+                // Soft delete the account itself
+                account.IsDeleted = true;
+                account.DeletedAt = DateTime.UtcNow;
+                account.UpdatedAt = DateTime.UtcNow;
+            }
+
+            // Save changes
+            _context.SaveChanges();
+
+            return (true, string.Empty);
+        }
+
         [HttpDelete("{id}")]
         public ActionResult DeleteAccount(Guid id)
         {
-            // Check if the account exists and if it's a main account
-            var account = _repository.Find(a => a.Id == id);
+            // Get the account with its core details to check balance
+            var account = _context.Accounts
+                .Include(a => a.CoreDetails)
+                .Where(a => a.Id == id && !a.IsDeleted)
+                .FirstOrDefault();
+
             if (account == null)
             {
-                return NotFound("Account not found.");
+                return NotFound("Account not found or has already been deleted.");
             }
 
-            // Prevent deletion of main accounts (!IsMain means it's deletable)
+            // Prevent deletion of main accounts - they are permanent
             if (account.IsMain)
             {
                 return BadRequest("Main accounts cannot be deleted.");
+            }
+
+            // Check if account has zero balance
+            if (account.CoreDetails != null && account.CoreDetails.Balance != 0)
+            {
+                return BadRequest($"Account cannot be deleted because it has a non-zero balance of ${account.CoreDetails.Balance:F2}. Please transfer all funds before deleting the account.");
             }
 
             return RemoveEntity(a => a.Id == id);

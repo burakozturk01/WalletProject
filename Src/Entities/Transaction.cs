@@ -19,7 +19,7 @@ namespace Src.Entities
         SPEND       // Spending transaction (no destination account)
     }
 
-    public class Transaction : IBaseEntity
+    public class Transaction
     {
         [Key]
         public Guid Id { get; set; }
@@ -63,8 +63,6 @@ namespace Src.Entities
 
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
-        public bool IsDeleted { get; set; }
-        public DateTime? DeletedAt { get; set; }
 
         // Navigation properties
         public virtual Account? SourceAccount { get; set; }

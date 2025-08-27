@@ -31,8 +31,8 @@ namespace Src.Repositories
         public override IQueryable<User> Get(out int count)
         {
             IQueryable<User> entities = _context.Set<User>()
-                .IgnoreQueryFilters() // Show all users including soft-deleted ones
                 .Include(u => u.Accounts)
+                .Where(u => !u.IsDeleted) // Filter out soft deleted users
                 .OrderBy(entity => entity.CreatedAt);
             count = entities.Count();
 
@@ -42,18 +42,51 @@ namespace Src.Repositories
         public override User Find(System.Linq.Expressions.Expression<Func<User, bool>> predicate)
         {
             return _context.Set<User>()
-                .IgnoreQueryFilters() // Allow finding soft-deleted users for validation
                 .Include(u => u.Accounts)
+                .Where(u => !u.IsDeleted) // Filter out soft deleted users
                 .FirstOrDefault(predicate);
         }
 
         public override IQueryable<User> Find(System.Linq.Expressions.Expression<Func<User, bool>> predicate, out int count)
         {
             IQueryable<User> entities = _context.Set<User>()
+                .Include(u => u.Accounts)
+                .Where(u => !u.IsDeleted) // Filter out soft deleted users
+                .Where(predicate)
+                .OrderBy(entity => entity.CreatedAt);
+                
+            count = entities.Count();
+
+            return entities;
+        }
+
+        // Administrative methods that include soft deleted users
+        public IQueryable<User> GetAll(out int count)
+        {
+            IQueryable<User> entities = _context.Set<User>()
                 .IgnoreQueryFilters() // Show all users including soft-deleted ones
                 .Include(u => u.Accounts)
-                .OrderBy(entity => entity.CreatedAt)
-                .Where(predicate);
+                .OrderBy(entity => entity.CreatedAt);
+            count = entities.Count();
+
+            return entities;
+        }
+
+        public User FindAll(System.Linq.Expressions.Expression<Func<User, bool>> predicate)
+        {
+            return _context.Set<User>()
+                .IgnoreQueryFilters() // Allow finding soft-deleted users for validation
+                .Include(u => u.Accounts)
+                .FirstOrDefault(predicate);
+        }
+
+        public IQueryable<User> FindAll(System.Linq.Expressions.Expression<Func<User, bool>> predicate, out int count)
+        {
+            IQueryable<User> entities = _context.Set<User>()
+                .IgnoreQueryFilters() // Show all users including soft-deleted ones
+                .Include(u => u.Accounts)
+                .Where(predicate)
+                .OrderBy(entity => entity.CreatedAt);
                 
             count = entities.Count();
 

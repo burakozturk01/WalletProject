@@ -1,20 +1,23 @@
 using System;
 using System.Linq;
+using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using Src.Controllers;
 using Src.Database;
 using Src.Entities;
-using Src.Shared.Repository;
 
 namespace Src.Repositories
 {
-    public class TransactionRepository : Repository<Transaction, TransactionReadDTO>
+    public class TransactionRepository : ITransactionRepository
     {
-        public TransactionRepository(AppDbContext context) : base(context)
+        private readonly AppDbContext _context;
+
+        public TransactionRepository(AppDbContext context)
         {
+            _context = context;
         }
 
-        public override TransactionReadDTO ParseToRead(Transaction entity)
+        public TransactionReadDTO ParseToRead(Transaction entity)
         {
             return new TransactionReadDTO
             {
@@ -31,42 +34,83 @@ namespace Src.Repositories
                 Description = entity.Description,
                 Timestamp = entity.Timestamp,
                 CreatedAt = entity.CreatedAt,
-                UpdatedAt = entity.UpdatedAt,
-                IsDeleted = entity.IsDeleted,
-                DeletedAt = entity.DeletedAt
+                UpdatedAt = entity.UpdatedAt
             };
         }
 
-        public override IQueryable<Transaction> Get(out int count)
+        public IQueryable<Transaction> Get(out int count)
         {
             IQueryable<Transaction> entities = _context.Set<Transaction>()
                 .Include(t => t.SourceAccount)
+                    .ThenInclude(a => a.User) // Include deleted users for reference
+                .Include(t => t.SourceAccount)
+                    .ThenInclude(a => a.CoreDetails)
                 .Include(t => t.DestinationAccount)
+                    .ThenInclude(a => a.User) // Include deleted users for reference
+                .Include(t => t.DestinationAccount)
+                    .ThenInclude(a => a.CoreDetails)
                 .OrderByDescending(entity => entity.Timestamp);
             count = entities.Count();
 
             return entities;
         }
 
-        public override Transaction Find(System.Linq.Expressions.Expression<Func<Transaction, bool>> predicate)
+        public Transaction Find(Expression<Func<Transaction, bool>> predicate)
         {
             return _context.Set<Transaction>()
                 .Include(t => t.SourceAccount)
+                    .ThenInclude(a => a.User) // Include deleted users for reference
+                .Include(t => t.SourceAccount)
+                    .ThenInclude(a => a.CoreDetails)
                 .Include(t => t.DestinationAccount)
+                    .ThenInclude(a => a.User) // Include deleted users for reference
+                .Include(t => t.DestinationAccount)
+                    .ThenInclude(a => a.CoreDetails)
                 .FirstOrDefault(predicate);
         }
 
-        public override IQueryable<Transaction> Find(System.Linq.Expressions.Expression<Func<Transaction, bool>> predicate, out int count)
+        public IQueryable<Transaction> Find(Expression<Func<Transaction, bool>> predicate, out int count)
         {
             IQueryable<Transaction> entities = _context.Set<Transaction>()
                 .Include(t => t.SourceAccount)
+                    .ThenInclude(a => a.User) // Include deleted users for reference
+                .Include(t => t.SourceAccount)
+                    .ThenInclude(a => a.CoreDetails)
                 .Include(t => t.DestinationAccount)
+                    .ThenInclude(a => a.User) // Include deleted users for reference
+                .Include(t => t.DestinationAccount)
+                    .ThenInclude(a => a.CoreDetails)
                 .OrderByDescending(entity => entity.Timestamp)
                 .Where(predicate);
                 
             count = entities.Count();
 
             return entities;
+        }
+
+        public Transaction GetOne(Guid id)
+        {
+            return _context.Set<Transaction>()
+                .Include(t => t.SourceAccount)
+                    .ThenInclude(a => a.User) // Include deleted users for reference
+                .Include(t => t.SourceAccount)
+                    .ThenInclude(a => a.CoreDetails)
+                .Include(t => t.DestinationAccount)
+                    .ThenInclude(a => a.User) // Include deleted users for reference
+                .Include(t => t.DestinationAccount)
+                    .ThenInclude(a => a.CoreDetails)
+                .FirstOrDefault(t => t.Id == id);
+        }
+
+        public void Add(Transaction entity)
+        {
+            _context.Set<Transaction>().Add(entity);
+        }
+
+        public bool SaveChanges()
+        {
+            var rows = _context.SaveChanges();
+            return (rows > 0);
         }
     }
 }

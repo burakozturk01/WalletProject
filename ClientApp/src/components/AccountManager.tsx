@@ -425,7 +425,21 @@ export function AccountManager({ accounts, users, onRefresh }: AccountManagerPro
                       {account.id.substring(0, 8)}...
                     </td>
                     <td style={{ padding: '12px', border: '1px solid #dee2e6' }}>
-                      {user ? user.username : 'Unknown'}
+                      {user ? (
+                        <span>
+                          {user.username}
+                          {user.isDeleted && (
+                            <span style={{ 
+                              color: '#dc3545', 
+                              fontSize: '11px', 
+                              marginLeft: '4px',
+                              fontStyle: 'italic'
+                            }}>
+                              (deleted)
+                            </span>
+                          )}
+                        </span>
+                      ) : 'Unknown'}
                     </td>
                     <td style={{ padding: '12px', border: '1px solid #dee2e6' }}>
                       {account.coreDetails?.name || 'No name'}
@@ -460,7 +474,7 @@ export function AccountManager({ accounts, users, onRefresh }: AccountManagerPro
                       </span>
                     </td>
                     <td style={{ padding: '12px', border: '1px solid #dee2e6' }}>
-                      {!account.isDeleted && (
+                      {!account.isDeleted && !account.isMain && (
                         <button
                           style={{ ...buttonStyle, backgroundColor: '#dc3545', color: 'white' }}
                           onClick={() => handleDelete(account.id)}

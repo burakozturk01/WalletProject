@@ -54,11 +54,20 @@ namespace Src.Shared.Repository
 
         public void Remove(TEntity entity)
         {
-            // Soft delete: mark as deleted instead of removing from database
-            entity.IsDeleted = true;
-            entity.DeletedAt = DateTime.UtcNow;
-            entity.UpdatedAt = DateTime.UtcNow;
-            _context.Set<TEntity>().Update(entity);
+            // Check if entity implements IDeletableComponent for true deletion
+            if (entity is IDeletable)
+            {
+                // True delete: completely remove from database
+                _context.Set<TEntity>().Remove(entity);
+            }
+            else
+            {
+                // Soft delete: mark as deleted instead of removing from database
+                entity.IsDeleted = true;
+                entity.DeletedAt = DateTime.UtcNow;
+                entity.UpdatedAt = DateTime.UtcNow;
+                _context.Set<TEntity>().Update(entity);
+            }
         }
 
         public void Update<TData>(TEntity entity, TData data)

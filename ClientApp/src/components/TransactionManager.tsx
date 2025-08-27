@@ -104,38 +104,17 @@ export function TransactionManager({ transactions, accounts, users, onRefresh }:
     });
   };
 
-  const handleDelete = async (transactionId: string) => {
-    if (!confirm('Are you sure you want to delete this transaction?')) return;
-
-    setLoading(true);
-    try {
-      const response = await fetch(`/api/transaction/${transactionId}`, {
-        method: 'DELETE',
-      });
-
-      if (response.ok) {
-        setMessage('Transaction deleted successfully!');
-        onRefresh();
-      } else {
-        const error = await response.text();
-        setMessage(`Error: ${error}`);
-      }
-    } catch (error) {
-      setMessage(`Error: ${error}`);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const getSourceDisplay = (transaction: Transaction) => {
     if (transaction.sourceType === 0) { // ACCOUNT
       const account = accounts.find(a => a.id === transaction.sourceAccountId);
       if (account) {
         const user = users.find(u => u.id === account.userId);
-        const userName = user ? user.username : 'Unknown User';
+        const userName = user ? `${user.username}${user.isDeleted ? ' (deleted)' : ''}` : 'Unknown User';
         const accountName = account.coreDetails?.name || 'Unknown Account';
+        const accountStatus = account.isDeleted ? ' (deleted)' : '';
         const balance = account.coreDetails?.balance ? `$${account.coreDetails.balance.toFixed(2)}` : 'No balance';
-        return `${userName} - ${accountName} (${balance})`;
+        return `${userName} - ${accountName}${accountStatus} (${balance})`;
       }
       return 'Unknown Account';
     } else if (transaction.sourceType === 1) { // IBAN
@@ -150,10 +129,11 @@ export function TransactionManager({ transactions, accounts, users, onRefresh }:
       const account = accounts.find(a => a.id === transaction.destinationAccountId);
       if (account) {
         const user = users.find(u => u.id === account.userId);
-        const userName = user ? user.username : 'Unknown User';
+        const userName = user ? `${user.username}${user.isDeleted ? ' (deleted)' : ''}` : 'Unknown User';
         const accountName = account.coreDetails?.name || 'Unknown Account';
+        const accountStatus = account.isDeleted ? ' (deleted)' : '';
         const balance = account.coreDetails?.balance ? `$${account.coreDetails.balance.toFixed(2)}` : 'No balance';
-        return `${userName} - ${accountName} (${balance})`;
+        return `${userName} - ${accountName}${accountStatus} (${balance})`;
       }
       return 'Unknown Account';
     } else if (transaction.destinationType === 1) { // IBAN
@@ -490,14 +470,12 @@ export function TransactionManager({ transactions, accounts, users, onRefresh }:
               <th style={{ padding: '12px', textAlign: 'right', border: '1px solid #dee2e6' }}>Amount</th>
               <th style={{ padding: '12px', textAlign: 'left', border: '1px solid #dee2e6' }}>Description</th>
               <th style={{ padding: '12px', textAlign: 'left', border: '1px solid #dee2e6' }}>Date</th>
-              <th style={{ padding: '12px', textAlign: 'left', border: '1px solid #dee2e6' }}>Status</th>
-              <th style={{ padding: '12px', textAlign: 'left', border: '1px solid #dee2e6' }}>Actions</th>
             </tr>
           </thead>
           <tbody>
             {transactions.length === 0 ? (
               <tr>
-                <td colSpan={8} style={{ padding: '20px', textAlign: 'center', color: '#666' }}>
+                <td colSpan={6} style={{ padding: '20px', textAlign: 'center', color: '#666' }}>
                   No transactions found. Create your first transaction!
                 </td>
               </tr>
@@ -521,28 +499,6 @@ export function TransactionManager({ transactions, accounts, users, onRefresh }:
                   </td>
                   <td style={{ padding: '12px', border: '1px solid #dee2e6' }}>
                     {new Date(transaction.timestamp).toLocaleDateString()}
-                  </td>
-                  <td style={{ padding: '12px', border: '1px solid #dee2e6' }}>
-                    <span style={{
-                      padding: '4px 8px',
-                      borderRadius: '4px',
-                      fontSize: '12px',
-                      backgroundColor: transaction.isDeleted ? '#f8d7da' : '#d4edda',
-                      color: transaction.isDeleted ? '#721c24' : '#155724'
-                    }}>
-                      {transaction.isDeleted ? 'Deleted' : 'Active'}
-                    </span>
-                  </td>
-                  <td style={{ padding: '12px', border: '1px solid #dee2e6' }}>
-                    {!transaction.isDeleted && (
-                      <button
-                        style={{ ...buttonStyle, backgroundColor: '#dc3545', color: 'white' }}
-                        onClick={() => handleDelete(transaction.id)}
-                        disabled={loading}
-                      >
-                        Delete
-                      </button>
-                    )}
                   </td>
                 </tr>
               ))

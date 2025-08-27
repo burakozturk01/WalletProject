@@ -31,7 +31,7 @@ namespace WalletProject
             // Register repositories
             services.AddScoped<IRepository<User, UserReadDTO>, UserRepository>();
             services.AddScoped<IRepository<Account, AccountReadDTO>, AccountRepository>();
-            services.AddScoped<IRepository<Transaction, TransactionReadDTO>, TransactionRepository>();
+            services.AddScoped<ITransactionRepository, TransactionRepository>();
 
             services.AddControllersWithViews();
 

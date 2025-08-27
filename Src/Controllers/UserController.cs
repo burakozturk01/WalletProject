@@ -1,12 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Src.Entities;
 using Src.Components;
 using Src.Shared.Controller;
 using Src.Shared.DTO;
 using Src.Shared.Repository;
+using Src.Database;
+using Src.Repositories;
 
 namespace Src.Controllers
 {
@@ -47,12 +51,23 @@ namespace Src.Controllers
         public string? Email { get; set; }
     }
 
+    public class UserTotalBalanceDTO
+    {
+        public Guid UserId { get; set; }
+        public decimal TotalBalance { get; set; }
+        public int AccountCount { get; set; }
+        public int ActiveAccountCount { get; set; }
+    }
+
     [ApiController]
     [Route("api/[controller]")]
     public class UserController : AppController<User, UserReadDTO>
     {
-        public UserController(IRepository<User, UserReadDTO> repository) : base(repository)
+        private readonly AppDbContext _context;
+
+        public UserController(IRepository<User, UserReadDTO> repository, AppDbContext context) : base(repository)
         {
+            _context = context;
         }
 
         [HttpGet]
@@ -67,6 +82,41 @@ namespace Src.Controllers
             return FindEntity(u => u.Id == id);
         }
 
+        // Admin endpoints that show all users including deleted ones
+        [HttpGet("admin/all")]
+        public ActionResult<ListReadDTO<UserReadDTO>> GetAllUsers([FromQuery] PaginateDTO paginate)
+        {
+            var userRepository = _repository as UserRepository;
+            if (userRepository != null)
+            {
+                var users = userRepository.GetAll(out int total)
+                    .Skip(paginate.Skip)
+                    .Take(paginate.Limit)
+                    .ToList();
+
+                var data = users.Select(userRepository.ParseToRead);
+                return Ok(new ListReadDTO<UserReadDTO>
+                {
+                    Data = data,
+                    Total = total,
+                });
+            }
+            return GetEntities(paginate);
+        }
+
+        [HttpGet("admin/{id}")]
+        public ActionResult<UserReadDTO> GetUserAdmin(Guid id)
+        {
+            var userRepository = _repository as UserRepository;
+            if (userRepository != null)
+            {
+                var user = userRepository.FindAll(u => u.Id == id);
+                if (user == null) return NotFound();
+                return Ok(userRepository.ParseToRead(user));
+            }
+            return FindEntity(u => u.Id == id);
+        }
+
         [HttpPost]
         public ActionResult<UserReadDTO> CreateUser([FromBody] UserCreateDTO createDto)
         {
@@ -75,15 +125,16 @@ namespace Src.Controllers
 
             try
             {
-                // Check if username already exists
-                var existingUserByUsername = _repository.Find(u => u.Username == createDto.Username);
+                // Check if username already exists (including soft deleted users)
+                var userRepository = _repository as UserRepository;
+                var existingUserByUsername = userRepository?.FindAll(u => u.Username == createDto.Username);
                 if (existingUserByUsername != null)
                 {
                     return BadRequest("Username already exists. Please choose a different username.");
                 }
 
-                // Check if email already exists
-                var existingUserByEmail = _repository.Find(u => u.Email == createDto.Email);
+                // Check if email already exists (including soft deleted users)
+                var existingUserByEmail = userRepository?.FindAll(u => u.Email == createDto.Email);
                 if (existingUserByEmail != null)
                 {
                     return BadRequest("Email already exists. Please use a different email address.");
@@ -152,9 +203,82 @@ namespace Src.Controllers
             });
         }
 
+        [HttpGet("{id}/total-balance")]
+        public ActionResult<UserTotalBalanceDTO> GetUserTotalBalance(Guid id)
+        {
+            var user = _context.Users
+                .Include(u => u.Accounts)
+                    .ThenInclude(a => a.CoreDetails)
+                .Where(u => u.Id == id && !u.IsDeleted)
+                .FirstOrDefault();
+
+            if (user == null)
+                return NotFound("User not found or has been deleted");
+
+            var totalBalance = user.Accounts
+                .Where(a => !a.IsDeleted && a.CoreDetails != null)
+                .Sum(a => a.CoreDetails.Balance);
+
+            var accountCount = user.Accounts.Count();
+            var activeAccountCount = user.Accounts.Count(a => !a.IsDeleted);
+
+            return Ok(new UserTotalBalanceDTO
+            {
+                UserId = user.Id,
+                TotalBalance = totalBalance,
+                AccountCount = accountCount,
+                ActiveAccountCount = activeAccountCount
+            });
+        }
+
         [HttpDelete("{id}")]
         public ActionResult DeleteUser(Guid id)
         {
+            // First, check if user exists and is not already deleted
+            var user = _context.Users
+                .Include(u => u.Accounts)
+                    .ThenInclude(a => a.CoreDetails)
+                .Include(u => u.Accounts)
+                    .ThenInclude(a => a.ActiveAccount)
+                .Include(u => u.Accounts)
+                    .ThenInclude(a => a.SpendingLimit)
+                .Include(u => u.Accounts)
+                    .ThenInclude(a => a.SavingGoal)
+                .Where(u => u.Id == id && !u.IsDeleted)
+                .FirstOrDefault();
+
+            if (user == null)
+                return NotFound("User not found or has been deleted");
+
+            // Get all non-deleted accounts for this user
+            var activeAccounts = user.Accounts.Where(a => !a.IsDeleted).ToList();
+
+            if (activeAccounts.Count == 0)
+            {
+                return BadRequest("User cannot be deleted. No active accounts found.");
+            }
+
+            // Calculate total balance across all accounts
+            var totalBalance = activeAccounts
+                .Where(a => a.CoreDetails != null)
+                .Sum(a => a.CoreDetails.Balance);
+
+            if (totalBalance != 0)
+            {
+                return BadRequest($"User cannot be deleted. All accounts must have zero balance. Current total balance: {totalBalance:C}");
+            }
+
+            // Use AccountController's method to soft delete all user accounts and their components
+            var accountRepository = new AccountRepository(_context);
+            var accountController = new AccountController(accountRepository, _context);
+            var accountDeletionResult = accountController.DeleteAllAccountsForUser(id);
+            
+            if (!accountDeletionResult.Success)
+            {
+                return BadRequest($"Failed to delete user accounts: {accountDeletionResult.ErrorMessage}");
+            }
+            
+            // Now soft delete the user
             return RemoveEntity(u => u.Id == id);
         }
     }
