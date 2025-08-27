@@ -476,8 +476,13 @@ tramp
 
 # Database
 *.db
+*.db-*
+*.db-wal
+*.db-shm
 *.sqlite
 *.sqlite3
+*.sqlite-wal
+*.sqlite-shm
 
 # Logs
 logs
@@ -508,5 +513,5 @@ build/Release
 
 # Optional REPL history
 .node_repl_history
-wallet.db-shm
+
 .gitignore
