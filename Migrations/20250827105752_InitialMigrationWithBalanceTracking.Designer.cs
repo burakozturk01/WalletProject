@@ -11,8 +11,8 @@ using Src.Database;
 namespace WalletProject.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250827080300_InitialMigration")]
-    partial class InitialMigration
+    [Migration("20250827105752_InitialMigrationWithBalanceTracking")]
+    partial class InitialMigrationWithBalanceTracking
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -186,6 +186,9 @@ namespace WalletProject.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("TEXT");
 
+                    b.Property<decimal?>("DestinationAccountBalanceBefore")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<Guid?>("DestinationAccountId")
                         .HasColumnType("TEXT");
 
@@ -199,6 +202,9 @@ namespace WalletProject.Migrations
 
                     b.Property<int>("DestinationType")
                         .HasColumnType("INTEGER");
+
+                    b.Property<decimal?>("SourceAccountBalanceBefore")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<Guid?>("SourceAccountId")
                         .HasColumnType("TEXT");

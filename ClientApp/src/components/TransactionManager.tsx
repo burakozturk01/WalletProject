@@ -113,8 +113,16 @@ export function TransactionManager({ transactions, accounts, users, onRefresh }:
         const userName = user ? `${user.username}${user.isDeleted ? ' (deleted)' : ''}` : 'Unknown User';
         const accountName = account.coreDetails?.name || 'Unknown Account';
         const accountStatus = account.isDeleted ? ' (deleted)' : '';
-        const balance = account.coreDetails?.balance ? `$${account.coreDetails.balance.toFixed(2)}` : 'No balance';
-        return `${userName} - ${accountName}${accountStatus} (${balance})`;
+        
+        // Show balance change if available
+        let balanceInfo = '';
+        if (transaction.sourceAccountBalanceBefore !== undefined) {
+          const balanceBefore = transaction.sourceAccountBalanceBefore;
+          const balanceAfter = balanceBefore - transaction.amount;
+          balanceInfo = ` ($${balanceBefore.toFixed(2)} → $${balanceAfter.toFixed(2)})`;
+        }
+        
+        return `${userName} - ${accountName}${balanceInfo}${accountStatus}`;
       }
       return 'Unknown Account';
     } else if (transaction.sourceType === 1) { // IBAN
@@ -132,8 +140,16 @@ export function TransactionManager({ transactions, accounts, users, onRefresh }:
         const userName = user ? `${user.username}${user.isDeleted ? ' (deleted)' : ''}` : 'Unknown User';
         const accountName = account.coreDetails?.name || 'Unknown Account';
         const accountStatus = account.isDeleted ? ' (deleted)' : '';
-        const balance = account.coreDetails?.balance ? `$${account.coreDetails.balance.toFixed(2)}` : 'No balance';
-        return `${userName} - ${accountName}${accountStatus} (${balance})`;
+        
+        // Show balance change if available
+        let balanceInfo = '';
+        if (transaction.destinationAccountBalanceBefore !== undefined) {
+          const balanceBefore = transaction.destinationAccountBalanceBefore;
+          const balanceAfter = balanceBefore + transaction.amount;
+          balanceInfo = ` ($${balanceBefore.toFixed(2)} → $${balanceAfter.toFixed(2)})`;
+        }
+        
+        return `${userName} - ${accountName}${balanceInfo}${accountStatus}`;
       }
       return 'Unknown Account';
     } else if (transaction.destinationType === 1) { // IBAN

@@ -61,6 +61,14 @@ namespace Src.Entities
         [Required]
         public DateTime Timestamp { get; set; }
 
+        // Balance tracking for accounts involved in the transaction
+        // After balances can be calculated: Source = Before - Amount, Destination = Before + Amount
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal? SourceAccountBalanceBefore { get; set; }
+
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal? DestinationAccountBalanceBefore { get; set; }
+
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
 

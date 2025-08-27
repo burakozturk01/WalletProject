@@ -54,6 +54,8 @@ export interface Transaction {
   amount: number;
   description: string;
   timestamp: string;
+  sourceAccountBalanceBefore?: number;
+  destinationAccountBalanceBefore?: number;
   createdAt: string;
   updatedAt: string;
   isDeleted: boolean;

@@ -183,6 +183,9 @@ namespace WalletProject.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("TEXT");
 
+                    b.Property<decimal?>("DestinationAccountBalanceBefore")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<Guid?>("DestinationAccountId")
                         .HasColumnType("TEXT");
 
@@ -196,6 +199,9 @@ namespace WalletProject.Migrations
 
                     b.Property<int>("DestinationType")
                         .HasColumnType("INTEGER");
+
+                    b.Property<decimal?>("SourceAccountBalanceBefore")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<Guid?>("SourceAccountId")
                         .HasColumnType("TEXT");

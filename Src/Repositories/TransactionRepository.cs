@@ -33,6 +33,8 @@ namespace Src.Repositories
                 Amount = entity.Amount,
                 Description = entity.Description,
                 Timestamp = entity.Timestamp,
+                SourceAccountBalanceBefore = entity.SourceAccountBalanceBefore,
+                DestinationAccountBalanceBefore = entity.DestinationAccountBalanceBefore,
                 CreatedAt = entity.CreatedAt,
                 UpdatedAt = entity.UpdatedAt
             };

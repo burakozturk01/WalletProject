@@ -27,6 +27,8 @@ namespace Src.Controllers
         public decimal Amount { get; set; }
         public string Description { get; set; } = string.Empty;
         public DateTime Timestamp { get; set; }
+        public decimal? SourceAccountBalanceBefore { get; set; }
+        public decimal? DestinationAccountBalanceBefore { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
     }
@@ -196,7 +198,6 @@ namespace Src.Controllers
                 if (sourceAccount != null && destinationAccount != null && sourceAccount.Id == destinationAccount.Id)
                     return BadRequest("Cannot transfer money to the same account");
 
-                // Create the transaction
                 var transaction = new Transaction
                 {
                     Id = Guid.NewGuid(),
@@ -211,6 +212,9 @@ namespace Src.Controllers
                     Amount = createDto.Amount,
                     Description = createDto.Description,
                     Timestamp = createDto.Timestamp ?? DateTime.UtcNow,
+                    // Store balance before the transaction
+                    SourceAccountBalanceBefore = sourceAccount?.CoreDetails?.Balance,
+                    DestinationAccountBalanceBefore = destinationAccount?.CoreDetails?.Balance,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 };
@@ -265,6 +269,8 @@ namespace Src.Controllers
                     Amount = createdTransaction.Amount,
                     Description = createdTransaction.Description,
                     Timestamp = createdTransaction.Timestamp,
+                    SourceAccountBalanceBefore = createdTransaction.SourceAccountBalanceBefore,
+                    DestinationAccountBalanceBefore = createdTransaction.DestinationAccountBalanceBefore,
                     CreatedAt = createdTransaction.CreatedAt,
                     UpdatedAt = createdTransaction.UpdatedAt
                 };
