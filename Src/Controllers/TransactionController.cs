@@ -137,22 +137,19 @@ namespace Src.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            // Validate source requirements
-            if (createDto.SourceType == SourceType.ACCOUNT && createDto.SourceAccountId == null)
+                        if (createDto.SourceType == SourceType.ACCOUNT && createDto.SourceAccountId == null)
                 return BadRequest(new { error = "SourceAccountId is required when SourceType is ACCOUNT" });
             
             if (createDto.SourceType == SourceType.IBAN && string.IsNullOrEmpty(createDto.SourceIban))
                 return BadRequest(new { error = "SourceIban is required when SourceType is IBAN" });
 
-            // Validate destination requirements
-            if (createDto.DestinationType == DestinationType.ACCOUNT && createDto.DestinationAccountId == null)
+                        if (createDto.DestinationType == DestinationType.ACCOUNT && createDto.DestinationAccountId == null)
                 return BadRequest(new { error = "DestinationAccountId is required when DestinationType is ACCOUNT" });
             
             if (createDto.DestinationType == DestinationType.IBAN && string.IsNullOrEmpty(createDto.DestinationIban))
                 return BadRequest(new { error = "DestinationIban is required when DestinationType is IBAN" });
 
-            // Validate amount
-            if (createDto.Amount <= 0)
+                        if (createDto.Amount <= 0)
                 return BadRequest(new { error = "Transaction amount must be greater than zero" });
 
             using var dbTransaction = _context.Database.BeginTransaction();
@@ -161,8 +158,7 @@ namespace Src.Controllers
                 Account? sourceAccount = null;
                 Account? destinationAccount = null;
 
-                // Get source account if applicable and validate balance
-                if (createDto.SourceType == SourceType.ACCOUNT)
+                                if (createDto.SourceType == SourceType.ACCOUNT)
                 {
                     sourceAccount = _context.Accounts
                         .Include(a => a.CoreDetails)
@@ -179,8 +175,7 @@ namespace Src.Controllers
                         return BadRequest(new { error = $"Insufficient funds. Available balance: ${sourceAccount.CoreDetails.Balance:F2}, Required: ${createDto.Amount:F2}" });
                 }
 
-                // Get destination account if applicable
-                if (createDto.DestinationType == DestinationType.ACCOUNT)
+                                if (createDto.DestinationType == DestinationType.ACCOUNT)
                 {
                     destinationAccount = _context.Accounts
                         .Include(a => a.CoreDetails)
@@ -194,8 +189,7 @@ namespace Src.Controllers
                         return BadRequest(new { error = "Destination account does not have core details configured" });
                 }
 
-                // Prevent transfers to the same account
-                if (sourceAccount != null && destinationAccount != null && sourceAccount.Id == destinationAccount.Id)
+                                if (sourceAccount != null && destinationAccount != null && sourceAccount.Id == destinationAccount.Id)
                     return BadRequest(new { error = "Cannot transfer money to the same account" });
 
                 var transaction = new Transaction
@@ -212,15 +206,13 @@ namespace Src.Controllers
                     Amount = createDto.Amount,
                     Description = createDto.Description,
                     Timestamp = createDto.Timestamp ?? DateTime.UtcNow,
-                    // Store balance before the transaction
-                    SourceAccountBalanceBefore = sourceAccount?.CoreDetails?.Balance,
+                                        SourceAccountBalanceBefore = sourceAccount?.CoreDetails?.Balance,
                     DestinationAccountBalanceBefore = destinationAccount?.CoreDetails?.Balance,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 };
 
-                // Update account balances
-                if (sourceAccount != null)
+                                if (sourceAccount != null)
                 {
                     sourceAccount.CoreDetails.Balance -= createDto.Amount;
                     sourceAccount.CoreDetails.UpdatedAt = DateTime.UtcNow;
@@ -234,21 +226,19 @@ namespace Src.Controllers
                     destinationAccount.UpdatedAt = DateTime.UtcNow;
                 }
 
-                // Save changes
-                _context.Transactions.Add(transaction);
+                                _context.Transactions.Add(transaction);
                 _context.SaveChanges();
                 dbTransaction.Commit();
 
-                // Return the created transaction
-                var createdTransaction = _context.Transactions
+                                var createdTransaction = _context.Transactions
                     .Include(t => t.SourceAccount)
                         .ThenInclude(a => a.CoreDetails)
                     .Include(t => t.SourceAccount)
-                        .ThenInclude(a => a.User) // Include deleted users for reference
+                        .ThenInclude(a => a.User) 
                     .Include(t => t.DestinationAccount)
                         .ThenInclude(a => a.CoreDetails)
                     .Include(t => t.DestinationAccount)
-                        .ThenInclude(a => a.User) // Include deleted users for reference
+                        .ThenInclude(a => a.User) 
                     .Where(t => t.Id == transaction.Id)
                     .FirstOrDefault();
 

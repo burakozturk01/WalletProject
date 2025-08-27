@@ -24,12 +24,10 @@ namespace Src.Entities
         public bool IsDeleted { get; set; }
         public DateTime? DeletedAt { get; set; }
 
-        // Navigation properties
         public virtual User User { get; set; } = null!;
         public virtual ICollection<Transaction> SourceTransactions { get; set; } = new List<Transaction>();
         public virtual ICollection<Transaction> DestinationTransactions { get; set; } = new List<Transaction>();
 
-        // Component relationships
         public virtual CoreDetailsComponent? CoreDetails { get; set; }
         public virtual ActiveAccountComponent? ActiveAccount { get; set; }
         public virtual SpendingLimitComponent? SpendingLimit { get; set; }

@@ -11,7 +11,6 @@ const reactProcess = spawn('npm', ['run', 'dev'], {
     shell: true
 });
 
-// Handle process cleanup
 process.on('SIGINT', () => {
     console.log('\n🛑 Shutting down React server...');
     reactProcess.kill('SIGINT');
@@ -28,5 +27,4 @@ reactProcess.on('close', (code) => {
     process.exit(code);
 });
 
-// Keep the script running
 process.stdin.resume();

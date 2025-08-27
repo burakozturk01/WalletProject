@@ -14,7 +14,6 @@ namespace Src.Shared.Repository
 
         IQueryable<TEntity> Find(Expression<Func<TEntity, bool>> predicate, out int count);
 
-
         TEntity GetOne(int id);
 
         void Add(TEntity entity);

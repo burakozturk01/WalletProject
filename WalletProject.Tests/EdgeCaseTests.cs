@@ -41,8 +41,7 @@ namespace WalletProject.Tests
                 var userResponse = await _client.PostAsync("/api/user", userContent);
                 var createdUser = await Utilities.GetDeserializedContent<UserReadDTO>(userResponse);
 
-                // Create account with very large balance
-                var largeAmount = 999999999999.99m; // Near maximum decimal precision
+                                var largeAmount = 999999999999.99m; 
                 var account = new AccountCreateDTO
                 {
                     UserId = createdUser.Id,
@@ -59,8 +58,7 @@ namespace WalletProject.Tests
                 accountResponse.EnsureSuccessStatusCode();
                 var createdAccount = await Utilities.GetDeserializedContent<AccountReadDTO>(accountResponse);
 
-                // Test large transaction
-                var largeTransactionAmount = 123456789.12m;
+                                var largeTransactionAmount = 123456789.12m;
                 var transaction = new TransactionCreateDTO
                 {
                     SourceType = SourceType.ACCOUNT,
@@ -78,7 +76,6 @@ namespace WalletProject.Tests
 
                 Assert.Equal(largeTransactionAmount, createdTransaction.Amount);
 
-                // Verify balance precision is maintained
                 var updatedAccountResponse = await _client.GetAsync($"/api/account/{createdAccount.Id}");
                 var updatedAccount = await Utilities.GetDeserializedContent<AccountReadDTO>(updatedAccountResponse);
                 var expectedBalance = largeAmount - largeTransactionAmount;
@@ -99,7 +96,6 @@ namespace WalletProject.Tests
                 var userResponse = await _client.PostAsync("/api/user", userContent);
                 var createdUser = await Utilities.GetDeserializedContent<UserReadDTO>(userResponse);
 
-                // Test with maximum reasonable decimal value for financial applications
                 var maxAmount = 999999999999999.99m;
                 var account = new AccountCreateDTO
                 {
@@ -145,7 +141,6 @@ namespace WalletProject.Tests
                 var userResponse = await _client.PostAsync("/api/user", userContent);
                 var createdUser = await Utilities.GetDeserializedContent<UserReadDTO>(userResponse);
 
-                // Create account with zero balance
                 var account = new AccountCreateDTO
                 {
                     UserId = createdUser.Id,
@@ -162,10 +157,8 @@ namespace WalletProject.Tests
                 accountResponse.EnsureSuccessStatusCode();
                 var createdAccount = await Utilities.GetDeserializedContent<AccountReadDTO>(accountResponse);
 
-                // Test that zero balance account can be created
                 Assert.Equal(0, createdAccount.CoreDetails.Balance);
 
-                // Test that spending from zero balance fails
                 var spendTransaction = new TransactionCreateDTO
                 {
                     SourceType = SourceType.ACCOUNT,
@@ -179,7 +172,6 @@ namespace WalletProject.Tests
                 var spendResponse = await _client.PostAsync("/api/transaction", spendContent);
                 Assert.Equal(HttpStatusCode.BadRequest, spendResponse.StatusCode);
 
-                // Test that receiving money works
                 var receiveTransaction = new TransactionCreateDTO
                 {
                     SourceType = SourceType.SYSTEM,
@@ -194,12 +186,10 @@ namespace WalletProject.Tests
                 var receiveResponse = await _client.PostAsync("/api/transaction", receiveContent);
                 receiveResponse.EnsureSuccessStatusCode();
 
-                // Verify balance updated
                 var updatedAccountResponse = await _client.GetAsync($"/api/account/{createdAccount.Id}");
                 var updatedAccount = await Utilities.GetDeserializedContent<AccountReadDTO>(updatedAccountResponse);
                 Assert.Equal(100, updatedAccount.CoreDetails.Balance);
 
-                // Test that zero balance account can be deleted
                 var spendAllTransaction = new TransactionCreateDTO
                 {
                     SourceType = SourceType.ACCOUNT,
@@ -230,7 +220,6 @@ namespace WalletProject.Tests
                 var userResponse = await _client.PostAsync("/api/user", userContent);
                 var createdUser = await Utilities.GetDeserializedContent<UserReadDTO>(userResponse);
 
-                // Create multiple zero balance accounts
                 for (int i = 0; i < 3; i++)
                 {
                     var account = new AccountCreateDTO
@@ -248,13 +237,12 @@ namespace WalletProject.Tests
                     await _client.PostAsync("/api/account", accountContent);
                 }
 
-                // Check total balance
                 var balanceResponse = await _client.GetAsync($"/api/user/{createdUser.Id}/total-balance");
                 balanceResponse.EnsureSuccessStatusCode();
                 var balanceData = await Utilities.GetDeserializedContent<UserTotalBalanceDTO>(balanceResponse);
 
                 Assert.Equal(0, balanceData.TotalBalance);
-                Assert.Equal(4, balanceData.AccountCount); // Including main account
+                Assert.Equal(4, balanceData.AccountCount); 
             }
         }
 
@@ -281,7 +269,6 @@ namespace WalletProject.Tests
                 var userResponse = await _client.PostAsync("/api/user", userContent);
                 var createdUser = await Utilities.GetDeserializedContent<UserReadDTO>(userResponse);
 
-                // Create account with precise decimal balance
                 var preciseAmount = 123.45m;
                 var account = new AccountCreateDTO
                 {
@@ -298,7 +285,6 @@ namespace WalletProject.Tests
                 var accountResponse = await _client.PostAsync("/api/account", accountContent);
                 var createdAccount = await Utilities.GetDeserializedContent<AccountReadDTO>(accountResponse);
 
-                // Test transaction with precise amount
                 var preciseTransactionAmount = 12.34m;
                 var transaction = new TransactionCreateDTO
                 {
@@ -313,7 +299,6 @@ namespace WalletProject.Tests
                 var transactionResponse = await _client.PostAsync("/api/transaction", transactionContent);
                 transactionResponse.EnsureSuccessStatusCode();
 
-                // Verify precision is maintained
                 var updatedAccountResponse = await _client.GetAsync($"/api/account/{createdAccount.Id}");
                 var updatedAccount = await Utilities.GetDeserializedContent<AccountReadDTO>(updatedAccountResponse);
                 var expectedBalance = preciseAmount - preciseTransactionAmount;
@@ -350,7 +335,6 @@ namespace WalletProject.Tests
                 var accountResponse = await _client.PostAsync("/api/account", accountContent);
                 var createdAccount = await Utilities.GetDeserializedContent<AccountReadDTO>(accountResponse);
 
-                // Perform multiple small transactions
                 decimal[] amounts = { 0.01m, 0.99m, 1.50m, 2.33m, 5.17m };
                 decimal totalSpent = 0;
 
@@ -370,7 +354,6 @@ namespace WalletProject.Tests
                     totalSpent += amount;
                 }
 
-                // Verify final balance
                 var finalAccountResponse = await _client.GetAsync($"/api/account/{createdAccount.Id}");
                 var finalAccount = await Utilities.GetDeserializedContent<AccountReadDTO>(finalAccountResponse);
                 var expectedFinalBalance = 1000.00m - totalSpent;
@@ -417,7 +400,6 @@ namespace WalletProject.Tests
                 var accountResponse = await _client.PostAsync("/api/account", accountContent);
                 var createdAccount = await Utilities.GetDeserializedContent<AccountReadDTO>(accountResponse);
 
-                // Transaction for exact balance amount
                 var transaction = new TransactionCreateDTO
                 {
                     SourceType = SourceType.ACCOUNT,
@@ -431,7 +413,6 @@ namespace WalletProject.Tests
                 var transactionResponse = await _client.PostAsync("/api/transaction", transactionContent);
                 transactionResponse.EnsureSuccessStatusCode();
 
-                // Verify balance is exactly zero
                 var updatedAccountResponse = await _client.GetAsync($"/api/account/{createdAccount.Id}");
                 var updatedAccount = await Utilities.GetDeserializedContent<AccountReadDTO>(updatedAccountResponse);
                 Assert.Equal(0, updatedAccount.CoreDetails.Balance);
@@ -466,7 +447,6 @@ namespace WalletProject.Tests
                 var accountResponse = await _client.PostAsync("/api/account", accountContent);
                 var createdAccount = await Utilities.GetDeserializedContent<AccountReadDTO>(accountResponse);
 
-                // Transaction for one cent over balance
                 var transaction = new TransactionCreateDTO
                 {
                     SourceType = SourceType.ACCOUNT,
@@ -511,7 +491,6 @@ namespace WalletProject.Tests
                 var accountResponse = await _client.PostAsync("/api/account", accountContent);
                 var createdAccount = await Utilities.GetDeserializedContent<AccountReadDTO>(accountResponse);
 
-                // Transaction for minimum amount (1 cent)
                 var transaction = new TransactionCreateDTO
                 {
                     SourceType = SourceType.ACCOUNT,

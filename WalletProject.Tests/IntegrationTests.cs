@@ -32,8 +32,7 @@ namespace WalletProject.Tests
             [Fact]
             public async Task UserLifecycle_CreateToDelete_CompletesSuccessfully()
             {
-                // 1. Create user
-                var user = new UserCreateDTO
+                                var user = new UserCreateDTO
                 {
                     Username = "lifecycle_user",
                     Email = "lifecycle_user@example.com",
@@ -45,8 +44,7 @@ namespace WalletProject.Tests
                 userResponse.EnsureSuccessStatusCode();
                 var createdUser = await Utilities.GetDeserializedContent<UserReadDTO>(userResponse);
 
-                // 2. Add additional accounts
-                var savingsAccount = new AccountCreateDTO
+                                var savingsAccount = new AccountCreateDTO
                 {
                     UserId = createdUser.Id,
                     IsMain = false,
@@ -78,8 +76,7 @@ namespace WalletProject.Tests
                 checkingResponse.EnsureSuccessStatusCode();
                 var createdCheckingAccount = await Utilities.GetDeserializedContent<AccountReadDTO>(checkingResponse);
 
-                // 3. Make transactions between accounts
-                var transaction1 = new TransactionCreateDTO
+                                var transaction1 = new TransactionCreateDTO
                 {
                     SourceType = SourceType.ACCOUNT,
                     SourceAccountId = createdSavingsAccount.Id,
@@ -93,8 +90,7 @@ namespace WalletProject.Tests
                 var transaction1Response = await _client.PostAsync("/api/transaction", transaction1Content);
                 transaction1Response.EnsureSuccessStatusCode();
 
-                // 4. Spend all money to achieve zero balance
-                var spendTransaction1 = new TransactionCreateDTO
+                                var spendTransaction1 = new TransactionCreateDTO
                 {
                     SourceType = SourceType.ACCOUNT,
                     SourceAccountId = createdSavingsAccount.Id,
@@ -118,17 +114,14 @@ namespace WalletProject.Tests
                 var spendContent2 = Utilities.GetStringContent(spendTransaction2);
                 await _client.PostAsync("/api/transaction", spendContent2);
 
-                // 5. Verify zero balances
                 var balanceResponse = await _client.GetAsync($"/api/user/{createdUser.Id}/total-balance");
                 balanceResponse.EnsureSuccessStatusCode();
                 var balanceData = await Utilities.GetDeserializedContent<UserTotalBalanceDTO>(balanceResponse);
                 Assert.Equal(0, balanceData.TotalBalance);
 
-                // 6. Delete user
                 var deleteResponse = await _client.DeleteAsync($"/api/user/{createdUser.Id}");
                 deleteResponse.EnsureSuccessStatusCode();
 
-                // 7. Verify user is deleted
                 var getResponse = await _client.GetAsync($"/api/user/{createdUser.Id}");
                 Assert.Equal(HttpStatusCode.NotFound, getResponse.StatusCode);
             }
@@ -146,8 +139,7 @@ namespace WalletProject.Tests
             [Fact]
             public async Task BalanceConsistency_MultipleTransactions_MaintainsConsistency()
             {
-                // Create user
-                var user = new UserCreateDTO
+                                var user = new UserCreateDTO
                 {
                     Username = "balance_consistency_user",
                     Email = "balance_consistency_user@example.com",
@@ -158,8 +150,7 @@ namespace WalletProject.Tests
                 var userResponse = await _client.PostAsync("/api/user", userContent);
                 var createdUser = await Utilities.GetDeserializedContent<UserReadDTO>(userResponse);
 
-                // Create multiple accounts
-                var accounts = new AccountReadDTO[3];
+                                var accounts = new AccountReadDTO[3];
                 decimal[] initialBalances = { 1000, 500, 250 };
 
                 for (int i = 0; i < 3; i++)
@@ -182,7 +173,6 @@ namespace WalletProject.Tests
 
                 decimal totalInitialBalance = initialBalances.Sum();
 
-                // Perform series of transactions
                 var transactions = new[]
                 {
                     new { From = 0, To = 1, Amount = 100m },
@@ -208,7 +198,6 @@ namespace WalletProject.Tests
                     transactionResponse.EnsureSuccessStatusCode();
                 }
 
-                // Verify total balance remains consistent
                 var balanceResponse = await _client.GetAsync($"/api/user/{createdUser.Id}/total-balance");
                 balanceResponse.EnsureSuccessStatusCode();
                 var balanceData = await Utilities.GetDeserializedContent<UserTotalBalanceDTO>(balanceResponse);
@@ -229,7 +218,6 @@ namespace WalletProject.Tests
             [Fact]
             public async Task ComponentManagement_AccountWithAllComponents_ManagesCorrectly()
             {
-                // Create user
                 var user = new UserCreateDTO
                 {
                     Username = "component_user",
@@ -241,7 +229,6 @@ namespace WalletProject.Tests
                 var userResponse = await _client.PostAsync("/api/user", userContent);
                 var createdUser = await Utilities.GetDeserializedContent<UserReadDTO>(userResponse);
 
-                // Create account with all components
                 var account = new AccountCreateDTO
                 {
                     UserId = createdUser.Id,
@@ -273,19 +260,16 @@ namespace WalletProject.Tests
                 accountResponse.EnsureSuccessStatusCode();
                 var createdAccount = await Utilities.GetDeserializedContent<AccountReadDTO>(accountResponse);
 
-                // Verify all components are created
                 Assert.NotNull(createdAccount.CoreDetails);
                 Assert.NotNull(createdAccount.ActiveAccount);
                 Assert.NotNull(createdAccount.SpendingLimit);
                 Assert.NotNull(createdAccount.SavingGoal);
 
-                // Verify component data
                 Assert.Equal(account.CoreDetails.Name, createdAccount.CoreDetails.Name);
                 Assert.Equal(account.ActiveAccount.IBAN, createdAccount.ActiveAccount.IBAN);
                 Assert.Equal(account.SpendingLimit.LimitAmount, createdAccount.SpendingLimit.LimitAmount);
                 Assert.Equal(account.SavingGoal.GoalName, createdAccount.SavingGoal.GoalName);
 
-                // Test transactions with the account
                 var transaction = new TransactionCreateDTO
                 {
                     SourceType = SourceType.ACCOUNT,
@@ -299,7 +283,6 @@ namespace WalletProject.Tests
                 var transactionResponse = await _client.PostAsync("/api/transaction", transactionContent);
                 transactionResponse.EnsureSuccessStatusCode();
 
-                // Verify balance update
                 var updatedAccountResponse = await _client.GetAsync($"/api/account/{createdAccount.Id}");
                 var updatedAccount = await Utilities.GetDeserializedContent<AccountReadDTO>(updatedAccountResponse);
                 Assert.Equal(1500, updatedAccount.CoreDetails.Balance);

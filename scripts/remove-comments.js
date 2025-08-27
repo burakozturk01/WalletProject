@@ -19,14 +19,12 @@ class CommentRemover {
             const char = content[i];
             const nextChar = i + 1 < length ? content[i + 1] : '';
 
-            // Handle string literals (preserve everything inside)
-            if (char === '"' || char === "'" || char === '`') {
+                        if (char === '"' || char === "'" || char === '`') {
                 const quote = char;
                 result += char;
                 i++;
                 
-                // Find the end of the string, handling escape sequences
-                while (i < length) {
+                                while (i < length) {
                     const currentChar = content[i];
                     result += currentChar;
                     
@@ -35,8 +33,7 @@ class CommentRemover {
                         break;
                     }
                     
-                    // Handle escape sequences
-                    if (currentChar === '\\' && i + 1 < length) {
+                                        if (currentChar === '\\' && i + 1 < length) {
                         i++;
                         if (i < length) {
                             result += content[i];
@@ -48,126 +45,98 @@ class CommentRemover {
             }
 
             if (char === '/' && nextChar === '/') {
-                // Check if this is part of a URL (http:// or https://)
-                const isUrl = this.isPartOfUrl(content, i);
+                                const isUrl = this.isPartOfUrl(content, i);
                 
                 if (isUrl) {
-                    // This is part of a URL, treat as regular text
-                    result += char;
+                                        result += char;
                     i++;
                     continue;
                 }
                 
                 modified = true;
                 
-                // Check if this comment is on a line by itself (only whitespace before it)
-                const isCommentOnlyLine = this.isCommentOnlyLine(result);
+                                const isCommentOnlyLine = this.isCommentOnlyLine(result);
                 
-                // Skip until end of line
-                while (i < length && content[i] !== '\n') {
+                                while (i < length && content[i] !== '\n') {
                     i++;
                 }
                 
-                // If comment was on its own line, remove the entire line including newline
-                if (isCommentOnlyLine && i < length && content[i] === '\n') {
-                    i++; // Skip the newline too
+                                if (isCommentOnlyLine && i < length && content[i] === '\n') {
+                    i++; 
                 } else if (i < length && content[i] === '\n') {
-                    // Comment was after code, keep the newline
-                    result += content[i];
+                                        result += content[i];
                     i++;
                 }
                 continue;
             }
 
-            // Handle multi-line comments /* */
-            if (char === '/' && nextChar === '*') {
+                        if (char === '/' && nextChar === '*') {
                 modified = true;
                 
-                // Check if this comment starts on a line by itself
-                const isCommentStartOnlyLine = this.isCommentOnlyLine(result);
+                                const isCommentStartOnlyLine = this.isCommentOnlyLine(result);
                 
-                i += 2; // Skip /*
+                i += 2; 
                 
-                // Track if we encounter newlines in the comment
-                let commentContainsNewlines = false;
+                                let commentContainsNewlines = false;
                 
-                // Find the end of the comment
-                while (i < length - 1) {
+                                while (i < length - 1) {
                     if (content[i] === '\n') {
                         commentContainsNewlines = true;
                     }
                     if (content[i] === '*' && content[i + 1] === '/') {
-                        i += 2; // Skip */
+                        i += 2; 
                         break;
                     }
                     i++;
                 }
                 
-                // If the comment started on its own line and contained newlines,
-                // and the next character is a newline, skip it to avoid empty line
-                if (isCommentStartOnlyLine && commentContainsNewlines && i < length && content[i] === '\n') {
-                    i++; // Skip the newline after the comment
+                                                if (isCommentStartOnlyLine && commentContainsNewlines && i < length && content[i] === '\n') {
+                    i++; 
                 }
                 
                 continue;
             }
 
-            // Regular character
-            result += char;
+                        result += char;
             i++;
         }
 
         return { content: result, modified };
     }
 
-    /**
-     * Check if the current line contains only whitespace before the comment
-     */
-    isCommentOnlyLine(resultSoFar) {
-        // Find the last newline in the result so far
-        const lastNewlineIndex = resultSoFar.lastIndexOf('\n');
+        isCommentOnlyLine(resultSoFar) {
+                const lastNewlineIndex = resultSoFar.lastIndexOf('\n');
         const currentLineContent = lastNewlineIndex === -1 ? resultSoFar : resultSoFar.substring(lastNewlineIndex + 1);
         
-        // Check if the current line contains only whitespace
-        return currentLineContent.trim() === '';
+                return currentLineContent.trim() === '';
     }
 
-    /**
-     * Check if the "//" at position i is part of a URL (http:// or https://)
-     */
-    isPartOfUrl(content, position) {
-        // Look backwards to see if we have "http:" or "https:" before the "//"
-        if (position < 5) return false; // Not enough space for "http:"
+        isPartOfUrl(content, position) {
+                if (position < 5) return false; 
         
-        // Check for "http://"
-        if (position >= 5) {
+                if (position >= 5) {
             const beforeSlashes = content.substring(position - 5, position);
             if (beforeSlashes === 'http:') {
                 return true;
             }
         }
         
-        // Check for "https://"
-        if (position >= 6) {
+                if (position >= 6) {
             const beforeSlashes = content.substring(position - 6, position);
             if (beforeSlashes === 'https:') {
                 return true;
             }
         }
         
-        // Check for other protocols that might use "//" (ftp://, file://, etc.)
-        // Look for pattern: word characters followed by ":"
-        let j = position - 1;
+                        let j = position - 1;
         if (j >= 0 && content[j] === ':') {
             j--;
-            // Look for protocol name (letters only)
-            let protocolStart = j;
+                        let protocolStart = j;
             while (j >= 0 && /[a-zA-Z]/.test(content[j])) {
                 j--;
             }
             
-            // If we found a protocol pattern and it's at word boundary
-            if (protocolStart > j && (j < 0 || !/[a-zA-Z0-9]/.test(content[j]))) {
+                        if (protocolStart > j && (j < 0 || !/[a-zA-Z0-9]/.test(content[j]))) {
                 return true;
             }
         }
@@ -175,10 +144,7 @@ class CommentRemover {
         return false;
     }
 
-    /**
-     * Process a single file
-     */
-    processFile(filePath) {
+        processFile(filePath) {
         try {
             const content = fs.readFileSync(filePath, 'utf8');
             const { content: newContent, modified } = this.removeComments(content, filePath);
@@ -195,10 +161,7 @@ class CommentRemover {
         }
     }
 
-    /**
-     * Recursively process directory
-     */
-    processDirectory(dirPath, excludeDirs = []) {
+        processDirectory(dirPath, excludeDirs = []) {
         try {
             const items = fs.readdirSync(dirPath);
             
@@ -207,8 +170,7 @@ class CommentRemover {
                 const stat = fs.statSync(itemPath);
                 
                 if (stat.isDirectory()) {
-                    // Skip excluded directories
-                    if (excludeDirs.includes(item) || item.startsWith('.')) {
+                                        if (excludeDirs.includes(item) || item.startsWith('.')) {
                         continue;
                     }
                     this.processDirectory(itemPath, excludeDirs);
@@ -224,10 +186,7 @@ class CommentRemover {
         }
     }
 
-    /**
-     * Main execution function
-     */
-    run(targetPath = '.', options = {}) {
+        run(targetPath = '.', options = {}) {
         const {
             excludeDirs = ['node_modules', 'bin', 'obj', '.git', '.vs', 'dist', 'build'],
             dryRun = false
@@ -271,7 +230,6 @@ class CommentRemover {
     }
 }
 
-// CLI interface
 if (require.main === module) {
     const args = process.argv.slice(2);
     const targetPath = args[0] || '.';
@@ -303,16 +261,14 @@ Supported file types: .cs, .ts, .tsx, .js, .jsx
         process.exit(0);
     }
 
-    // Safety check
-    if (!dryRun) {
+        if (!dryRun) {
         console.log('⚠️  WARNING: This will permanently remove comments from your code files!');
         console.log('   Make sure you have backed up your files or committed to version control.');
         console.log('   Use --dry-run to preview changes first.');
         console.log('');
         console.log('   Press Ctrl+C to cancel, or any key to continue...');
         
-        // Wait for user input
-        process.stdin.setRawMode(true);
+                process.stdin.setRawMode(true);
         process.stdin.resume();
         process.stdin.on('data', () => {
             process.stdin.setRawMode(false);

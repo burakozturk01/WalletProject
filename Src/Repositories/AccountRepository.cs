@@ -53,14 +53,14 @@ namespace Src.Repositories
         public override IQueryable<Account> Get(out int count)
         {
             IQueryable<Account> entities = _context.Set<Account>()
-                .Include(a => a.User) // Include deleted users for reference
+                .Include(a => a.User) 
                 .Include(a => a.CoreDetails)
                 .Include(a => a.ActiveAccount)
                 .Include(a => a.SpendingLimit)
                 .Include(a => a.SavingGoal)
                 .Include(a => a.SourceTransactions)
                 .Include(a => a.DestinationTransactions)
-                .Where(a => !a.IsDeleted) // Filter out soft deleted accounts
+                .Where(a => !a.IsDeleted) 
                 .OrderBy(entity => entity.CreatedAt);
             count = entities.Count();
 
@@ -70,28 +70,28 @@ namespace Src.Repositories
         public override Account Find(System.Linq.Expressions.Expression<Func<Account, bool>> predicate)
         {
             return _context.Set<Account>()
-                .Include(a => a.User) // Include deleted users for reference
+                .Include(a => a.User) 
                 .Include(a => a.CoreDetails)
                 .Include(a => a.ActiveAccount)
                 .Include(a => a.SpendingLimit)
                 .Include(a => a.SavingGoal)
                 .Include(a => a.SourceTransactions)
                 .Include(a => a.DestinationTransactions)
-                .Where(a => !a.IsDeleted) // Filter out soft deleted accounts
+                .Where(a => !a.IsDeleted) 
                 .FirstOrDefault(predicate);
         }
 
         public override IQueryable<Account> Find(System.Linq.Expressions.Expression<Func<Account, bool>> predicate, out int count)
         {
             IQueryable<Account> entities = _context.Set<Account>()
-                .Include(a => a.User) // Include deleted users for reference
+                .Include(a => a.User) 
                 .Include(a => a.CoreDetails)
                 .Include(a => a.ActiveAccount)
                 .Include(a => a.SpendingLimit)
                 .Include(a => a.SavingGoal)
                 .Include(a => a.SourceTransactions)
                 .Include(a => a.DestinationTransactions)
-                .Where(a => !a.IsDeleted) // Filter out soft deleted accounts
+                .Where(a => !a.IsDeleted) 
                 .Where(predicate)
                 .OrderBy(entity => entity.CreatedAt);
                 
@@ -100,12 +100,11 @@ namespace Src.Repositories
             return entities;
         }
 
-        // Administrative methods that include soft deleted accounts
-        public IQueryable<Account> GetAll(out int count)
+                public IQueryable<Account> GetAll(out int count)
         {
             IQueryable<Account> entities = _context.Set<Account>()
-                .IgnoreQueryFilters() // Show all accounts including soft-deleted ones
-                .Include(a => a.User) // Include deleted users for reference
+                .IgnoreQueryFilters() 
+                .Include(a => a.User) 
                 .Include(a => a.CoreDetails)
                 .Include(a => a.ActiveAccount)
                 .Include(a => a.SpendingLimit)
@@ -121,8 +120,8 @@ namespace Src.Repositories
         public Account FindAll(System.Linq.Expressions.Expression<Func<Account, bool>> predicate)
         {
             return _context.Set<Account>()
-                .IgnoreQueryFilters() // Allow finding soft-deleted accounts for validation
-                .Include(a => a.User) // Include deleted users for reference
+                .IgnoreQueryFilters() 
+                .Include(a => a.User) 
                 .Include(a => a.CoreDetails)
                 .Include(a => a.ActiveAccount)
                 .Include(a => a.SpendingLimit)
@@ -135,8 +134,8 @@ namespace Src.Repositories
         public IQueryable<Account> FindAll(System.Linq.Expressions.Expression<Func<Account, bool>> predicate, out int count)
         {
             IQueryable<Account> entities = _context.Set<Account>()
-                .IgnoreQueryFilters() // Show all accounts including soft-deleted ones
-                .Include(a => a.User) // Include deleted users for reference
+                .IgnoreQueryFilters() 
+                .Include(a => a.User) 
                 .Include(a => a.CoreDetails)
                 .Include(a => a.ActiveAccount)
                 .Include(a => a.SpendingLimit)

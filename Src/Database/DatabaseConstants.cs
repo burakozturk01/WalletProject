@@ -22,13 +22,13 @@ namespace Src.Database
         {
             return new[]
             {
-                TableNames.Transactions, // First, delete transactions (they reference accounts)
-                TableNames.CoreDetailsComponents, // Delete components (they reference accounts)
+                TableNames.Transactions, 
+                TableNames.CoreDetailsComponents, 
                 TableNames.ActiveAccountComponents,
                 TableNames.SpendingLimitComponents,
                 TableNames.SavingGoalComponents,
-                TableNames.Accounts, // Delete accounts (they reference users)
-                TableNames.Users // Finally, delete users
+                TableNames.Accounts, 
+                TableNames.Users 
             };
         }
     }

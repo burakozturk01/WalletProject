@@ -23,7 +23,6 @@ namespace Src.Components
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
 
-        // Navigation property
-        public virtual Account Account { get; set; } = null!;
+                public virtual Account Account { get; set; } = null!;
     }
 }

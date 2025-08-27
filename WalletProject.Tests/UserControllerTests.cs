@@ -208,7 +208,6 @@ namespace WalletProject.Tests
             [Fact]
             public async Task UpdateUser_EmailConflict_ReturnsBadRequest()
             {
-                // Create first user
                 var user1 = new UserCreateDTO
                 {
                     Username = "testuser_update1",
@@ -219,7 +218,6 @@ namespace WalletProject.Tests
                 var content1 = Utilities.GetStringContent(user1);
                 await _client.PostAsync("/api/user", content1);
 
-                // Create second user
                 var user2 = new UserCreateDTO
                 {
                     Username = "testuser_update2",
@@ -231,7 +229,6 @@ namespace WalletProject.Tests
                 var response2 = await _client.PostAsync("/api/user", content2);
                 var createdUser2 = await Utilities.GetDeserializedContent<UserReadDTO>(response2);
 
-                // Try to update second user's email to first user's email
                 var updateUser = new UserUpdateDTO
                 {
                     Email = "testuser_update1@example.com"
@@ -246,7 +243,6 @@ namespace WalletProject.Tests
             [Fact]
             public async Task UpdateUser_UsernameConflict_ReturnsBadRequest()
             {
-                // Create first user
                 var user1 = new UserCreateDTO
                 {
                     Username = "testuser_update3",
@@ -257,7 +253,6 @@ namespace WalletProject.Tests
                 var content1 = Utilities.GetStringContent(user1);
                 await _client.PostAsync("/api/user", content1);
 
-                // Create second user
                 var user2 = new UserCreateDTO
                 {
                     Username = "testuser_update4",
@@ -269,7 +264,6 @@ namespace WalletProject.Tests
                 var response2 = await _client.PostAsync("/api/user", content2);
                 var createdUser2 = await Utilities.GetDeserializedContent<UserReadDTO>(response2);
 
-                // Try to update second user's username to first user's username
                 var updateUser = new UserUpdateDTO
                 {
                     Username = "testuser_update3"
@@ -358,8 +352,7 @@ namespace WalletProject.Tests
                 var response = await _client.PostAsync("/api/user", content);
                 var createdUser = await Utilities.GetDeserializedContent<UserReadDTO>(response);
 
-                // Create two accounts
-                var account1 = new AccountCreateDTO
+                                var account1 = new AccountCreateDTO
                 {
                     UserId = createdUser.Id,
                     IsMain = false,
@@ -389,8 +382,7 @@ namespace WalletProject.Tests
                 var response2 = await _client.PostAsync("/api/account", accountContent2);
                 var createdAccount2 = await Utilities.GetDeserializedContent<AccountReadDTO>(response2);
 
-                // Create transaction to move all money to second account
-                var transaction = new TransactionCreateDTO
+                                var transaction = new TransactionCreateDTO
                 {
                     SourceType = Src.Entities.SourceType.ACCOUNT,
                     SourceAccountId = createdAccount1.Id,
@@ -403,8 +395,7 @@ namespace WalletProject.Tests
                 var transactionContent = Utilities.GetStringContent(transaction);
                 await _client.PostAsync("/api/transaction", transactionContent);
 
-                // Create another transaction to move money back (so both accounts have zero balance)
-                var transaction2 = new TransactionCreateDTO
+                                var transaction2 = new TransactionCreateDTO
                 {
                     SourceType = Src.Entities.SourceType.ACCOUNT,
                     SourceAccountId = createdAccount2.Id,
@@ -416,8 +407,7 @@ namespace WalletProject.Tests
                 var transactionContent2 = Utilities.GetStringContent(transaction2);
                 await _client.PostAsync("/api/transaction", transactionContent2);
 
-                // Now delete user should succeed even with transaction history
-                var deleteResponse = await _client.DeleteAsync($"/api/user/{createdUser.Id}");
+                                var deleteResponse = await _client.DeleteAsync($"/api/user/{createdUser.Id}");
                 deleteResponse.EnsureSuccessStatusCode();
 
                 var getResponse = await _client.GetAsync($"/api/user/{createdUser.Id}");
@@ -448,8 +438,7 @@ namespace WalletProject.Tests
                 var response = await _client.PostAsync("/api/user", content);
                 var createdUser = await Utilities.GetDeserializedContent<UserReadDTO>(response);
 
-                // Create multiple accounts with different balances
-                var account1 = new AccountCreateDTO
+                                var account1 = new AccountCreateDTO
                 {
                     UserId = createdUser.Id,
                     IsMain = false,
@@ -477,13 +466,12 @@ namespace WalletProject.Tests
                 var accountContent2 = Utilities.GetStringContent(account2);
                 await _client.PostAsync("/api/account", accountContent2);
 
-                // Get total balance
-                var balanceResponse = await _client.GetAsync($"/api/user/{createdUser.Id}/total-balance");
+                                var balanceResponse = await _client.GetAsync($"/api/user/{createdUser.Id}/total-balance");
                 balanceResponse.EnsureSuccessStatusCode();
                 var balanceData = await Utilities.GetDeserializedContent<UserTotalBalanceDTO>(balanceResponse);
 
                 Assert.Equal(750.50m, balanceData.TotalBalance);
-                Assert.Equal(3, balanceData.AccountCount); // Including main account
+                Assert.Equal(3, balanceData.AccountCount); 
                 Assert.Equal(3, balanceData.ActiveAccountCount);
             }
         }

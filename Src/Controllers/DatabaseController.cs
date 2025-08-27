@@ -22,11 +22,9 @@ namespace Src.Controllers
         {
             try
             {
-                // Get table names in the correct deletion order
-                var tablesToDelete = DatabaseConstants.GetTableDeletionOrder();
+                                var tablesToDelete = DatabaseConstants.GetTableDeletionOrder();
 
-                // Delete all data from tables in the correct order to avoid foreign key constraints
-                foreach (var tableName in tablesToDelete)
+                                foreach (var tableName in tablesToDelete)
                 {
                     await _context.Database.ExecuteSqlRawAsync($"DELETE FROM {tableName}");
                 }
@@ -44,8 +42,7 @@ namespace Src.Controllers
         {
             try
             {
-                // Show all entities including soft-deleted ones for database tester
-                var userCount = await _context.Users.IgnoreQueryFilters().CountAsync();
+                                var userCount = await _context.Users.IgnoreQueryFilters().CountAsync();
                 var accountCount = await _context.Accounts.IgnoreQueryFilters().CountAsync();
                 var transactionCount = await _context.Transactions.IgnoreQueryFilters().CountAsync();
                 var coreDetailsCount = await _context.CoreDetailsComponents.IgnoreQueryFilters().CountAsync();

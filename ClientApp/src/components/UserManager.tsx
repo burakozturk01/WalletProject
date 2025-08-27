@@ -25,8 +25,7 @@ export function UserManager({ users, onRefresh }: UserManagerProps) {
   const [userBalances, setUserBalances] = useState<Record<string, UserTotalBalance>>({});
   const [balanceLoading, setBalanceLoading] = useState(false);
 
-  // Fetch total balances for all users
-  const fetchUserBalances = async () => {
+    const fetchUserBalances = async () => {
     setBalanceLoading(true);
     const balances: Record<string, UserTotalBalance> = {};
     
@@ -52,20 +51,18 @@ export function UserManager({ users, onRefresh }: UserManagerProps) {
     }
   };
 
-  // Fetch balances when users change or component mounts
-  useEffect(() => {
+    useEffect(() => {
     if (users.length > 0) {
       fetchUserBalances();
     }
   }, [users]);
 
-  // Auto-refresh balances every 30 seconds for dynamic updates
-  useEffect(() => {
+    useEffect(() => {
     const interval = setInterval(() => {
       if (users.length > 0) {
         fetchUserBalances();
       }
-    }, 30000); // 30 seconds
+    }, 30000); 
 
     return () => clearInterval(interval);
   }, [users]);
@@ -89,8 +86,7 @@ export function UserManager({ users, onRefresh }: UserManagerProps) {
         setFormData({ username: '', email: '', password: '' });
         setShowCreateForm(false);
         onRefresh();
-        // Refresh balances after creating a new user
-        setTimeout(fetchUserBalances, 1000);
+                setTimeout(fetchUserBalances, 1000);
       } else {
         const error = await response.text();
         setMessage(`Error: ${error}`);
@@ -114,8 +110,7 @@ export function UserManager({ users, onRefresh }: UserManagerProps) {
       if (response.ok) {
         setMessage('User deleted successfully!');
         onRefresh();
-        // Refresh balances after deleting a user
-        setTimeout(fetchUserBalances, 1000);
+                setTimeout(fetchUserBalances, 1000);
       } else {
         const error = await response.text();
         setMessage(`Error: ${error}`);

@@ -16,13 +16,11 @@ namespace Src.Database
         public AppDbContext(DbContextOptions<AppDbContext> options): base(options)
         { }
 
-        // Entities
-        public DbSet<User> Users { get; set; }
+                public DbSet<User> Users { get; set; }
         public DbSet<Account> Accounts { get; set; }
         public DbSet<Transaction> Transactions { get; set; }
 
-        // Components
-        public DbSet<CoreDetailsComponent> CoreDetailsComponents { get; set; }
+                public DbSet<CoreDetailsComponent> CoreDetailsComponents { get; set; }
         public DbSet<ActiveAccountComponent> ActiveAccountComponents { get; set; }
         public DbSet<SpendingLimitComponent> SpendingLimitComponents { get; set; }
         public DbSet<SavingGoalComponent> SavingGoalComponents { get; set; }
@@ -31,21 +29,18 @@ namespace Src.Database
         {
             base.OnModelCreating(modelBuilder);
 
-            // Configure soft delete for entities that implement IBaseEntity
-            modelBuilder.Entity<User>().HasQueryFilter(e => !e.IsDeleted);
+                        modelBuilder.Entity<User>().HasQueryFilter(e => !e.IsDeleted);
             modelBuilder.Entity<Account>().HasQueryFilter(e => !e.IsDeleted);
             modelBuilder.Entity<CoreDetailsComponent>().HasQueryFilter(e => !e.IsDeleted);
             modelBuilder.Entity<ActiveAccountComponent>().HasQueryFilter(e => !e.IsDeleted);
 
-            // User entity configuration
-            modelBuilder.Entity<User>(entity =>
+                        modelBuilder.Entity<User>(entity =>
             {
                 entity.HasIndex(e => e.Username).IsUnique();
                 entity.HasIndex(e => e.Email).IsUnique();
             });
 
-            // Account entity configuration
-            modelBuilder.Entity<Account>(entity =>
+                        modelBuilder.Entity<Account>(entity =>
             {
                 entity.HasOne(a => a.User)
                     .WithMany(u => u.Accounts)
@@ -53,8 +48,7 @@ namespace Src.Database
                     .OnDelete(DeleteBehavior.Restrict);
             });
 
-            // Transaction entity configuration
-            modelBuilder.Entity<Transaction>(entity =>
+                        modelBuilder.Entity<Transaction>(entity =>
             {
                 entity.HasOne(t => t.SourceAccount)
                     .WithMany(a => a.SourceTransactions)
@@ -67,8 +61,7 @@ namespace Src.Database
                     .OnDelete(DeleteBehavior.Restrict);
             });
 
-            // Component configurations with soft delete
-            modelBuilder.Entity<CoreDetailsComponent>(entity =>
+                        modelBuilder.Entity<CoreDetailsComponent>(entity =>
             {
                 entity.HasOne(c => c.Account)
                     .WithOne(a => a.CoreDetails)

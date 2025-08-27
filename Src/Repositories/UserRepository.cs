@@ -32,7 +32,7 @@ namespace Src.Repositories
         {
             IQueryable<User> entities = _context.Set<User>()
                 .Include(u => u.Accounts)
-                .Where(u => !u.IsDeleted) // Filter out soft deleted users
+                .Where(u => !u.IsDeleted) 
                 .OrderBy(entity => entity.CreatedAt);
             count = entities.Count();
 
@@ -43,7 +43,7 @@ namespace Src.Repositories
         {
             return _context.Set<User>()
                 .Include(u => u.Accounts)
-                .Where(u => !u.IsDeleted) // Filter out soft deleted users
+                .Where(u => !u.IsDeleted) 
                 .FirstOrDefault(predicate);
         }
 
@@ -51,7 +51,7 @@ namespace Src.Repositories
         {
             IQueryable<User> entities = _context.Set<User>()
                 .Include(u => u.Accounts)
-                .Where(u => !u.IsDeleted) // Filter out soft deleted users
+                .Where(u => !u.IsDeleted) 
                 .Where(predicate)
                 .OrderBy(entity => entity.CreatedAt);
                 
@@ -60,11 +60,10 @@ namespace Src.Repositories
             return entities;
         }
 
-        // Administrative methods that include soft deleted users
-        public IQueryable<User> GetAll(out int count)
+                public IQueryable<User> GetAll(out int count)
         {
             IQueryable<User> entities = _context.Set<User>()
-                .IgnoreQueryFilters() // Show all users including soft-deleted ones
+                .IgnoreQueryFilters() 
                 .Include(u => u.Accounts)
                 .OrderBy(entity => entity.CreatedAt);
             count = entities.Count();
@@ -75,7 +74,7 @@ namespace Src.Repositories
         public User FindAll(System.Linq.Expressions.Expression<Func<User, bool>> predicate)
         {
             return _context.Set<User>()
-                .IgnoreQueryFilters() // Allow finding soft-deleted users for validation
+                .IgnoreQueryFilters() 
                 .Include(u => u.Accounts)
                 .FirstOrDefault(predicate);
         }
@@ -83,7 +82,7 @@ namespace Src.Repositories
         public IQueryable<User> FindAll(System.Linq.Expressions.Expression<Func<User, bool>> predicate, out int count)
         {
             IQueryable<User> entities = _context.Set<User>()
-                .IgnoreQueryFilters() // Show all users including soft-deleted ones
+                .IgnoreQueryFilters() 
                 .Include(u => u.Accounts)
                 .Where(predicate)
                 .OrderBy(entity => entity.CreatedAt);

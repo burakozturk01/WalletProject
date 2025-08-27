@@ -54,15 +54,12 @@ namespace Src.Shared.Repository
 
         public void Remove(TEntity entity)
         {
-            // Check if entity implements IDeletableComponent for true deletion
             if (entity is IDeletable)
             {
-                // True delete: completely remove from database
                 _context.Set<TEntity>().Remove(entity);
             }
             else
             {
-                // Soft delete: mark as deleted instead of removing from database
                 entity.IsDeleted = true;
                 entity.DeletedAt = DateTime.UtcNow;
                 entity.UpdatedAt = DateTime.UtcNow;

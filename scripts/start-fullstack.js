@@ -5,7 +5,6 @@ const path = require('path');
 
 console.log('🚀 Starting Full Stack Development Environment...\n');
 
-// Start React development server
 console.log('📦 Starting React development server...');
 const reactProcess = spawn('npm', ['run', 'dev'], {
     cwd: path.join(__dirname, '..', 'ClientApp'),
@@ -13,7 +12,6 @@ const reactProcess = spawn('npm', ['run', 'dev'], {
     shell: true
 });
 
-// Wait a bit for React to start, then start .NET
 setTimeout(() => {
     console.log('\n🔧 Starting .NET backend...');
     const dotnetProcess = spawn('dotnet', ['run'], {
@@ -22,8 +20,7 @@ setTimeout(() => {
         shell: true
     });
 
-    // Handle process cleanup
-    process.on('SIGINT', () => {
+        process.on('SIGINT', () => {
         console.log('\n🛑 Shutting down development servers...');
         reactProcess.kill('SIGINT');
         dotnetProcess.kill('SIGINT');
@@ -48,7 +45,6 @@ setTimeout(() => {
         process.exit(code);
     });
 
-}, 3000); // Wait 3 seconds for React to start
+}, 3000); 
 
-// Keep the script running
 process.stdin.resume();

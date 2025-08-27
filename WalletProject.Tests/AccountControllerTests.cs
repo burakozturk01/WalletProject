@@ -254,7 +254,6 @@ namespace WalletProject.Tests
                 var userResponse = await _client.PostAsync("/api/user", userContent);
                 var createdUser = await Utilities.GetDeserializedContent<UserReadDTO>(userResponse);
 
-                // Get the automatically created main account instead of trying to create another one
                 var accountsResponse = await _client.GetAsync($"/api/account/user/{createdUser.Id}");
                 accountsResponse.EnsureSuccessStatusCode();
                 var accountsList = await Utilities.GetDeserializedContent<ListReadDTO<AccountReadDTO>>(accountsResponse);
@@ -345,7 +344,7 @@ namespace WalletProject.Tests
             {
                 var account = new AccountCreateDTO
                 {
-                    UserId = Guid.NewGuid(), // Non-existent user
+                    UserId = Guid.NewGuid(), 
                     IsMain = false,
                     CoreDetails = new CoreDetailsCreateDTO
                     {
@@ -374,7 +373,6 @@ namespace WalletProject.Tests
                 var userResponse = await _client.PostAsync("/api/user", userContent);
                 var createdUser = await Utilities.GetDeserializedContent<UserReadDTO>(userResponse);
 
-                // Get the automatically created main account
                 var accountsResponse = await _client.GetAsync($"/api/account/user/{createdUser.Id}");
                 accountsResponse.EnsureSuccessStatusCode();
                 var accountsList = await Utilities.GetDeserializedContent<ListReadDTO<AccountReadDTO>>(accountsResponse);
@@ -421,8 +419,7 @@ namespace WalletProject.Tests
                 var userResponse = await _client.PostAsync("/api/user", userContent);
                 var createdUser = await Utilities.GetDeserializedContent<UserReadDTO>(userResponse);
 
-                // Create multiple accounts
-                for (int i = 1; i <= 3; i++)
+                                for (int i = 1; i <= 3; i++)
                 {
                     var account = new AccountCreateDTO
                     {
@@ -439,13 +436,12 @@ namespace WalletProject.Tests
                     await _client.PostAsync("/api/account", accountContent);
                 }
 
-                // Test pagination
                 var paginatedResponse = await _client.GetAsync($"/api/account/user/{createdUser.Id}?skip=0&limit=2");
                 paginatedResponse.EnsureSuccessStatusCode();
                 var paginatedAccounts = await Utilities.GetDeserializedContent<ListReadDTO<AccountReadDTO>>(paginatedResponse);
 
                 Assert.Equal(2, paginatedAccounts.Data.Count());
-                Assert.Equal(4, paginatedAccounts.Total); // Including main account
+                Assert.Equal(4, paginatedAccounts.Total); 
             }
         }
 
@@ -472,7 +468,6 @@ namespace WalletProject.Tests
                 var userResponse = await _client.PostAsync("/api/user", userContent);
                 var createdUser = await Utilities.GetDeserializedContent<UserReadDTO>(userResponse);
 
-                // Create source account
                 var sourceAccount = new AccountCreateDTO
                 {
                     UserId = createdUser.Id,
@@ -488,7 +483,6 @@ namespace WalletProject.Tests
                 var sourceResponse = await _client.PostAsync("/api/account", sourceContent);
                 var createdSourceAccount = await Utilities.GetDeserializedContent<AccountReadDTO>(sourceResponse);
 
-                // Create destination account
                 var destAccount = new AccountCreateDTO
                 {
                     UserId = createdUser.Id,
@@ -504,7 +498,6 @@ namespace WalletProject.Tests
                 var destResponse = await _client.PostAsync("/api/account", destContent);
                 var createdDestAccount = await Utilities.GetDeserializedContent<AccountReadDTO>(destResponse);
 
-                // Create transaction
                 var transaction = new TransactionCreateDTO
                 {
                     SourceType = Src.Entities.SourceType.ACCOUNT,
@@ -518,13 +511,11 @@ namespace WalletProject.Tests
                 var transactionContent = Utilities.GetStringContent(transaction);
                 await _client.PostAsync("/api/transaction", transactionContent);
 
-                // Verify source account balance
                 var sourceGetResponse = await _client.GetAsync($"/api/account/{createdSourceAccount.Id}");
                 sourceGetResponse.EnsureSuccessStatusCode();
                 var updatedSourceAccount = await Utilities.GetDeserializedContent<AccountReadDTO>(sourceGetResponse);
                 Assert.Equal(700, updatedSourceAccount.CoreDetails.Balance);
 
-                // Verify destination account balance
                 var destGetResponse = await _client.GetAsync($"/api/account/{createdDestAccount.Id}");
                 destGetResponse.EnsureSuccessStatusCode();
                 var updatedDestAccount = await Utilities.GetDeserializedContent<AccountReadDTO>(destGetResponse);

@@ -7,16 +7,16 @@ namespace Src.Entities
 {
     public enum SourceType
     {
-        ACCOUNT,    // Transaction from an account
-        IBAN,       // Transaction from an external IBAN
-        SYSTEM      // System-generated transaction (e.g., interest, fees)
+        ACCOUNT,    
+        IBAN,       
+        SYSTEM      
     }
 
     public enum DestinationType
     {
-        ACCOUNT,    // Transaction to an account
-        IBAN,       // Transaction to an external IBAN
-        SPEND       // Spending transaction (no destination account)
+        ACCOUNT,    
+        IBAN,       
+        SPEND       
     }
 
     public class Transaction
@@ -24,7 +24,6 @@ namespace Src.Entities
         [Key]
         public Guid Id { get; set; }
 
-        // Source information
         [Required]
         public SourceType SourceType { get; set; }
 
@@ -37,7 +36,6 @@ namespace Src.Entities
         [MaxLength(255)]
         public string? SourceName { get; set; }
 
-        // Destination information
         [Required]
         public DestinationType DestinationType { get; set; }
 
@@ -61,8 +59,6 @@ namespace Src.Entities
         [Required]
         public DateTime Timestamp { get; set; }
 
-        // Balance tracking for accounts involved in the transaction
-        // After balances can be calculated: Source = Before - Amount, Destination = Before + Amount
         [Column(TypeName = "decimal(18,2)")]
         public decimal? SourceAccountBalanceBefore { get; set; }
 
@@ -72,7 +68,6 @@ namespace Src.Entities
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
 
-        // Navigation properties
         public virtual Account? SourceAccount { get; set; }
         public virtual Account? DestinationAccount { get; set; }
     }

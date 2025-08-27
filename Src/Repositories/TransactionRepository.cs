@@ -44,11 +44,11 @@ namespace Src.Repositories
         {
             IQueryable<Transaction> entities = _context.Set<Transaction>()
                 .Include(t => t.SourceAccount)
-                    .ThenInclude(a => a.User) // Include deleted users for reference
+                    .ThenInclude(a => a.User) 
                 .Include(t => t.SourceAccount)
                     .ThenInclude(a => a.CoreDetails)
                 .Include(t => t.DestinationAccount)
-                    .ThenInclude(a => a.User) // Include deleted users for reference
+                    .ThenInclude(a => a.User) 
                 .Include(t => t.DestinationAccount)
                     .ThenInclude(a => a.CoreDetails)
                 .OrderByDescending(entity => entity.Timestamp);
@@ -61,11 +61,11 @@ namespace Src.Repositories
         {
             return _context.Set<Transaction>()
                 .Include(t => t.SourceAccount)
-                    .ThenInclude(a => a.User) // Include deleted users for reference
+                    .ThenInclude(a => a.User) 
                 .Include(t => t.SourceAccount)
                     .ThenInclude(a => a.CoreDetails)
                 .Include(t => t.DestinationAccount)
-                    .ThenInclude(a => a.User) // Include deleted users for reference
+                    .ThenInclude(a => a.User) 
                 .Include(t => t.DestinationAccount)
                     .ThenInclude(a => a.CoreDetails)
                 .FirstOrDefault(predicate);
@@ -75,11 +75,11 @@ namespace Src.Repositories
         {
             IQueryable<Transaction> entities = _context.Set<Transaction>()
                 .Include(t => t.SourceAccount)
-                    .ThenInclude(a => a.User) // Include deleted users for reference
+                    .ThenInclude(a => a.User) 
                 .Include(t => t.SourceAccount)
                     .ThenInclude(a => a.CoreDetails)
                 .Include(t => t.DestinationAccount)
-                    .ThenInclude(a => a.User) // Include deleted users for reference
+                    .ThenInclude(a => a.User) 
                 .Include(t => t.DestinationAccount)
                     .ThenInclude(a => a.CoreDetails)
                 .OrderByDescending(entity => entity.Timestamp)
@@ -94,11 +94,11 @@ namespace Src.Repositories
         {
             return _context.Set<Transaction>()
                 .Include(t => t.SourceAccount)
-                    .ThenInclude(a => a.User) // Include deleted users for reference
+                    .ThenInclude(a => a.User) 
                 .Include(t => t.SourceAccount)
                     .ThenInclude(a => a.CoreDetails)
                 .Include(t => t.DestinationAccount)
-                    .ThenInclude(a => a.User) // Include deleted users for reference
+                    .ThenInclude(a => a.User) 
                 .Include(t => t.DestinationAccount)
                     .ThenInclude(a => a.CoreDetails)
                 .FirstOrDefault(t => t.Id == id);

@@ -11,12 +11,12 @@ interface TransactionManagerProps {
 export function TransactionManager({ transactions, accounts, users, onRefresh }: TransactionManagerProps) {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [formData, setFormData] = useState({
-    sourceType: 0, // 0=ACCOUNT, 1=IBAN, 2=SYSTEM
+    sourceType: 0, 
     sourceUserId: '',
     sourceAccountId: '',
     sourceIban: '',
     sourceName: '',
-    destinationType: 0, // 0=ACCOUNT, 1=IBAN, 2=SPEND
+    destinationType: 0, 
     destinationUserId: '',
     destinationAccountId: '',
     destinationIban: '',
@@ -43,23 +43,21 @@ export function TransactionManager({ transactions, accounts, users, onRefresh }:
         description: formData.description
       };
 
-      // Add source details based on type
-      if (formData.sourceType === 0) { // ACCOUNT
+            if (formData.sourceType === 0) { 
         payload.sourceAccountId = formData.sourceAccountId;
-      } else if (formData.sourceType === 1) { // IBAN
+      } else if (formData.sourceType === 1) { 
         payload.sourceIban = formData.sourceIban;
         payload.sourceName = formData.sourceName;
-      } else { // SYSTEM
+      } else { 
         payload.sourceName = formData.sourceName;
       }
 
-      // Add destination details based on type
-      if (formData.destinationType === 0) { // ACCOUNT
+            if (formData.destinationType === 0) { 
         payload.destinationAccountId = formData.destinationAccountId;
-      } else if (formData.destinationType === 1) { // IBAN
+      } else if (formData.destinationType === 1) { 
         payload.destinationIban = formData.destinationIban;
         payload.destinationName = formData.destinationName;
-      } else { // SPEND
+      } else { 
         payload.destinationName = formData.destinationName;
       }
 
@@ -106,7 +104,7 @@ export function TransactionManager({ transactions, accounts, users, onRefresh }:
 
 
   const getSourceDisplay = (transaction: Transaction) => {
-    if (transaction.sourceType === 0) { // ACCOUNT
+    if (transaction.sourceType === 0) { 
       const account = accounts.find(a => a.id === transaction.sourceAccountId);
       if (account) {
         const user = users.find(u => u.id === account.userId);
@@ -114,8 +112,7 @@ export function TransactionManager({ transactions, accounts, users, onRefresh }:
         const accountName = account.coreDetails?.name || 'Unknown Account';
         const accountStatus = account.isDeleted ? ' (deleted)' : '';
         
-        // Show balance change if available
-        let balanceInfo = '';
+                let balanceInfo = '';
         if (transaction.sourceAccountBalanceBefore !== undefined) {
           const balanceBefore = transaction.sourceAccountBalanceBefore;
           const balanceAfter = balanceBefore - transaction.amount;
@@ -125,15 +122,15 @@ export function TransactionManager({ transactions, accounts, users, onRefresh }:
         return `${userName} - ${accountName}${balanceInfo}${accountStatus}`;
       }
       return 'Unknown Account';
-    } else if (transaction.sourceType === 1) { // IBAN
+    } else if (transaction.sourceType === 1) { 
       return `${transaction.sourceIban} (${transaction.sourceName || 'External'})`;
-    } else { // SYSTEM
+    } else { 
       return `System (${transaction.sourceName || 'System Transaction'})`;
     }
   };
 
   const getDestinationDisplay = (transaction: Transaction) => {
-    if (transaction.destinationType === 0) { // ACCOUNT
+    if (transaction.destinationType === 0) { 
       const account = accounts.find(a => a.id === transaction.destinationAccountId);
       if (account) {
         const user = users.find(u => u.id === account.userId);
@@ -141,8 +138,7 @@ export function TransactionManager({ transactions, accounts, users, onRefresh }:
         const accountName = account.coreDetails?.name || 'Unknown Account';
         const accountStatus = account.isDeleted ? ' (deleted)' : '';
         
-        // Show balance change if available
-        let balanceInfo = '';
+                let balanceInfo = '';
         if (transaction.destinationAccountBalanceBefore !== undefined) {
           const balanceBefore = transaction.destinationAccountBalanceBefore;
           const balanceAfter = balanceBefore + transaction.amount;
@@ -152,15 +148,14 @@ export function TransactionManager({ transactions, accounts, users, onRefresh }:
         return `${userName} - ${accountName}${balanceInfo}${accountStatus}`;
       }
       return 'Unknown Account';
-    } else if (transaction.destinationType === 1) { // IBAN
+    } else if (transaction.destinationType === 1) { 
       return `${transaction.destinationIban} (${transaction.destinationName || 'External'})`;
-    } else { // SPEND
+    } else { 
       return `Spending (${transaction.destinationName || 'Purchase'})`;
     }
   };
 
-  // Filter accounts by selected user
-  const getFilteredSourceAccounts = () => {
+    const getFilteredSourceAccounts = () => {
     if (!formData.sourceUserId) return [];
     return accounts.filter(a => !a.isDeleted && a.userId === formData.sourceUserId);
   };
@@ -170,12 +165,11 @@ export function TransactionManager({ transactions, accounts, users, onRefresh }:
     return accounts.filter(a => !a.isDeleted && a.userId === formData.destinationUserId);
   };
 
-  // Reset account selection when user changes
-  const handleSourceUserChange = (userId: string) => {
+    const handleSourceUserChange = (userId: string) => {
     setFormData({ 
       ...formData, 
       sourceUserId: userId, 
-      sourceAccountId: '' // Reset account selection
+      sourceAccountId: '' 
     });
   };
 
@@ -183,7 +177,7 @@ export function TransactionManager({ transactions, accounts, users, onRefresh }:
     setFormData({ 
       ...formData, 
       destinationUserId: userId, 
-      destinationAccountId: '' // Reset account selection
+      destinationAccountId: '' 
     });
   };
 

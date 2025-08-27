@@ -82,8 +82,7 @@ namespace Src.Controllers
             return FindEntity(u => u.Id == id);
         }
 
-        // Admin endpoints that show all users including deleted ones
-        [HttpGet("admin/all")]
+                [HttpGet("admin/all")]
         public ActionResult<ListReadDTO<UserReadDTO>> GetAllUsers([FromQuery] PaginateDTO paginate)
         {
             var userRepository = _repository as UserRepository;
@@ -125,16 +124,14 @@ namespace Src.Controllers
 
             try
             {
-                // Check if username already exists (including soft deleted users)
-                var userRepository = _repository as UserRepository;
+                                var userRepository = _repository as UserRepository;
                 var existingUserByUsername = userRepository?.FindAll(u => u.Username == createDto.Username);
                 if (existingUserByUsername != null)
                 {
                     return BadRequest("Username already exists. Please choose a different username.");
                 }
 
-                // Check if email already exists (including soft deleted users)
-                var existingUserByEmail = userRepository?.FindAll(u => u.Email == createDto.Email);
+                                var existingUserByEmail = userRepository?.FindAll(u => u.Email == createDto.Email);
                 if (existingUserByEmail != null)
                 {
                     return BadRequest("Email already exists. Please use a different email address.");
@@ -151,8 +148,7 @@ namespace Src.Controllers
                     IsDeleted = false
                 };
 
-                // Create default account for the user
-                var defaultAccount = new Account
+                                var defaultAccount = new Account
                 {
                     Id = Guid.NewGuid(),
                     UserId = user.Id,
@@ -162,8 +158,7 @@ namespace Src.Controllers
                     IsDeleted = false
                 };
 
-                // Create required CoreDetails component for the default account
-                defaultAccount.CoreDetails = new CoreDetailsComponent
+                                defaultAccount.CoreDetails = new CoreDetailsComponent
                 {
                     Id = Guid.NewGuid(),
                     AccountId = defaultAccount.Id,
@@ -174,15 +169,13 @@ namespace Src.Controllers
                     IsDeleted = false
                 };
 
-                // Add the default account to the user's accounts collection
-                user.Accounts.Add(defaultAccount);
+                                user.Accounts.Add(defaultAccount);
 
                 return CreateEntity(user);
             }
             catch (Exception ex)
             {
-                // Handle any other database errors
-                if (ex.Message.Contains("UNIQUE constraint failed") || ex.InnerException?.Message.Contains("UNIQUE constraint failed") == true)
+                                if (ex.Message.Contains("UNIQUE constraint failed") || ex.InnerException?.Message.Contains("UNIQUE constraint failed") == true)
                 {
                     return BadRequest("Username or email already exists. Please use different values.");
                 }
@@ -199,15 +192,13 @@ namespace Src.Controllers
 
             try
             {
-                // Check if user exists
-                var existingUser = _repository.Find(u => u.Id == id);
+                                var existingUser = _repository.Find(u => u.Id == id);
                 if (existingUser == null)
                     return NotFound("User not found");
 
                 var userRepository = _repository as UserRepository;
 
-                // Check for email conflict if email is being updated
-                if (!string.IsNullOrEmpty(updateDto.Email) && updateDto.Email != existingUser.Email)
+                                if (!string.IsNullOrEmpty(updateDto.Email) && updateDto.Email != existingUser.Email)
                 {
                     var existingUserByEmail = userRepository?.FindAll(u => u.Email == updateDto.Email && u.Id != id);
                     if (existingUserByEmail != null)
@@ -216,8 +207,7 @@ namespace Src.Controllers
                     }
                 }
 
-                // Check for username conflict if username is being updated
-                if (!string.IsNullOrEmpty(updateDto.Username) && updateDto.Username != existingUser.Username)
+                                if (!string.IsNullOrEmpty(updateDto.Username) && updateDto.Username != existingUser.Username)
                 {
                     var existingUserByUsername = userRepository?.FindAll(u => u.Username == updateDto.Username && u.Id != id);
                     if (existingUserByUsername != null)
@@ -233,8 +223,7 @@ namespace Src.Controllers
             }
             catch (Exception ex)
             {
-                // Handle any other database errors
-                if (ex.Message.Contains("UNIQUE constraint failed") || ex.InnerException?.Message.Contains("UNIQUE constraint failed") == true)
+                                if (ex.Message.Contains("UNIQUE constraint failed") || ex.InnerException?.Message.Contains("UNIQUE constraint failed") == true)
                 {
                     return BadRequest("Username or email already exists. Please use different values.");
                 }
@@ -274,8 +263,7 @@ namespace Src.Controllers
         [HttpDelete("{id}")]
         public ActionResult DeleteUser(Guid id)
         {
-            // First, check if user exists and is not already deleted
-            var user = _context.Users
+                        var user = _context.Users
                 .Include(u => u.Accounts)
                     .ThenInclude(a => a.CoreDetails)
                 .Include(u => u.Accounts)
@@ -290,16 +278,14 @@ namespace Src.Controllers
             if (user == null)
                 return NotFound("User not found or has been deleted");
 
-            // Get all non-deleted accounts for this user
-            var activeAccounts = user.Accounts.Where(a => !a.IsDeleted).ToList();
+                        var activeAccounts = user.Accounts.Where(a => !a.IsDeleted).ToList();
 
             if (activeAccounts.Count == 0)
             {
                 return BadRequest("User cannot be deleted. No active accounts found.");
             }
 
-            // Calculate total balance across all accounts
-            var totalBalance = activeAccounts
+                        var totalBalance = activeAccounts
                 .Where(a => a.CoreDetails != null)
                 .Sum(a => a.CoreDetails.Balance);
 
@@ -308,8 +294,7 @@ namespace Src.Controllers
                 return BadRequest($"User cannot be deleted. All accounts must have zero balance. Current total balance: {totalBalance:C}");
             }
 
-            // Use AccountController's method to soft delete all user accounts and their components
-            var accountRepository = new AccountRepository(_context);
+                        var accountRepository = new AccountRepository(_context);
             var accountController = new AccountController(accountRepository, _context);
             var accountDeletionResult = accountController.DeleteAllAccountsForUser(id);
             
@@ -318,8 +303,7 @@ namespace Src.Controllers
                 return BadRequest($"Failed to delete user accounts: {accountDeletionResult.ErrorMessage}");
             }
             
-            // Now soft delete the user
-            return RemoveEntity(u => u.Id == id);
+                        return RemoveEntity(u => u.Id == id);
         }
     }
 }

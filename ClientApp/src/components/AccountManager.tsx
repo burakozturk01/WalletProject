@@ -23,7 +23,7 @@ export function AccountManager({ accounts, users, onRefresh }: AccountManagerPro
     spendingLimit: {
       enabled: false,
       limitAmount: 0,
-      timeframe: 0 // 0=DAILY, 1=WEEKLY, 2=MONTHLY, 3=YEARLY
+      timeframe: 0 
     },
     savingGoal: {
       enabled: false,

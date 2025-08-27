@@ -27,7 +27,6 @@ namespace Src.Entities
         public bool IsDeleted { get; set; }
         public DateTime? DeletedAt { get; set; }
 
-        // Navigation properties
         public virtual ICollection<Account> Accounts { get; set; } = new List<Account>();
     }
 }

@@ -5,7 +5,6 @@ const path = require('path');
 
 console.log('🧪 Running All Tests for WalletProject...\n');
 
-// Function to run a command and return a promise
 function runCommand(command, args, options = {}) {
     return new Promise((resolve, reject) => {
         const fullCommand = `${command} ${args.join(' ')}`;
@@ -56,7 +55,6 @@ async function runAllTests() {
     }
 }
 
-// Handle process cleanup
 process.on('SIGINT', () => {
     console.log('\n🛑 Test execution interrupted...');
     process.exit(130);
@@ -67,5 +65,4 @@ process.on('SIGTERM', () => {
     process.exit(143);
 });
 
-// Run the tests
 runAllTests();

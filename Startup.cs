@@ -21,38 +21,29 @@ namespace WalletProject
 
         public IConfiguration Configuration { get; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            // Configure Entity Framework
             services.AddDbContext<AppDbContext>(options =>
-                options.UseSqlite(Configuration.GetConnectionString("DefaultConnection")));
+            options.UseSqlite(Configuration.GetConnectionString("DefaultConnection")));
 
-            // Register repositories
             services.AddScoped<IRepository<User, UserReadDTO>, UserRepository>();
             services.AddScoped<IRepository<Account, AccountReadDTO>, AccountRepository>();
             services.AddScoped<ITransactionRepository, TransactionRepository>();
 
             services.AddControllersWithViews();
 
-            // In production, the React files will be served from this directory
             services.AddSpaStaticFiles(configuration =>
             {
                 configuration.RootPath = "ClientApp/dist";
             });
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
-            {
                 app.UseDeveloperExceptionPage();
-            }
             else
-            {
                 app.UseExceptionHandler("/Error");
-            }
 
             app.UseStaticFiles();
             app.UseSpaStaticFiles();
@@ -71,9 +62,7 @@ namespace WalletProject
                 spa.Options.SourcePath = "ClientApp";
 
                 if (env.IsDevelopment())
-                {
                     spa.UseProxyToSpaDevelopmentServer("http://localhost:5173");
-                }
             });
         }
     }

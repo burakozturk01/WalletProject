@@ -52,7 +52,6 @@ namespace WalletProject.Tests
         {
             if (disposing)
             {
-                // Clean up the test database file
                 try
                 {
                     if (System.IO.File.Exists(_databaseName))
@@ -62,7 +61,8 @@ namespace WalletProject.Tests
                 }
                 catch
                 {
-                    // Ignore cleanup errors
+                    // Log error
+                    Console.WriteLine("Failed to delete test database");
                 }
             }
             base.Dispose(disposing);

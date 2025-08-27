@@ -11,7 +11,6 @@ const dotnetProcess = spawn('dotnet', ['run'], {
     shell: true
 });
 
-// Handle process cleanup
 process.on('SIGINT', () => {
     console.log('\n🛑 Shutting down .NET server...');
     dotnetProcess.kill('SIGINT');
@@ -28,5 +27,4 @@ dotnetProcess.on('close', (code) => {
     process.exit(code);
 });
 
-// Keep the script running
 process.stdin.resume();

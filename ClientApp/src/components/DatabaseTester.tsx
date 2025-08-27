@@ -107,7 +107,7 @@ export function DatabaseTester() {
 
       if (response.ok) {
         alert('Database has been reset successfully!');
-        await refreshData(); // Refresh data after reset
+        await refreshData(); 
       } else {
         const errorText = await response.text();
         alert(`Failed to reset database: ${errorText}`);

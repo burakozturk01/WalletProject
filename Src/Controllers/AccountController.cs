@@ -24,8 +24,7 @@ namespace Src.Controllers
         public bool IsDeleted { get; set; }
         public DateTime? DeletedAt { get; set; }
         
-        // Component data
-        public CoreDetailsReadDTO? CoreDetails { get; set; }
+                public CoreDetailsReadDTO? CoreDetails { get; set; }
         public ActiveAccountReadDTO? ActiveAccount { get; set; }
         public SpendingLimitReadDTO? SpendingLimit { get; set; }
         public SavingGoalReadDTO? SavingGoal { get; set; }
@@ -64,12 +63,10 @@ namespace Src.Controllers
         
         public bool IsMain { get; set; }
 
-        // Required core details
-        [Required]
+                [Required]
         public CoreDetailsCreateDTO CoreDetails { get; set; } = new();
 
-        // Optional components
-        public ActiveAccountCreateDTO? ActiveAccount { get; set; }
+                public ActiveAccountCreateDTO? ActiveAccount { get; set; }
         public SpendingLimitCreateDTO? SpendingLimit { get; set; }
         public SavingGoalCreateDTO? SavingGoal { get; set; }
     }
@@ -143,8 +140,7 @@ namespace Src.Controllers
             return FindEntities(paginate, a => a.UserId == userId);
         }
 
-        // Admin endpoints that show all accounts including deleted ones
-        [HttpGet("admin/all")]
+                [HttpGet("admin/all")]
         public ActionResult<ListReadDTO<AccountReadDTO>> GetAllAccounts([FromQuery] PaginateDTO paginate)
         {
             var accountRepository = _repository as AccountRepository;
@@ -207,15 +203,13 @@ namespace Src.Controllers
 
             try
             {
-                // Validate that the user exists
-                var userExists = _context.Users.Any(u => u.Id == createDto.UserId && !u.IsDeleted);
+                                var userExists = _context.Users.Any(u => u.Id == createDto.UserId && !u.IsDeleted);
                 if (!userExists)
                 {
                     return BadRequest("Invalid user ID. The specified user does not exist.");
                 }
 
-                // Prevent creating multiple main accounts for the same user
-                if (createDto.IsMain)
+                                if (createDto.IsMain)
                 {
                     var existingMainAccount = _repository.Find(a => a.UserId == createDto.UserId && a.IsMain);
                     if (existingMainAccount != null)
@@ -234,8 +228,7 @@ namespace Src.Controllers
                 IsDeleted = false
             };
 
-            // Create required CoreDetails component
-            account.CoreDetails = new CoreDetailsComponent
+                        account.CoreDetails = new CoreDetailsComponent
             {
                 Id = Guid.NewGuid(),
                 AccountId = account.Id,
@@ -246,8 +239,7 @@ namespace Src.Controllers
                 IsDeleted = false
             };
 
-            // Create optional components
-            if (createDto.ActiveAccount != null)
+                        if (createDto.ActiveAccount != null)
             {
                 account.ActiveAccount = new ActiveAccountComponent
                 {
@@ -305,21 +297,18 @@ namespace Src.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            // Check if the account exists
-            var account = _repository.Find(a => a.Id == id);
+                        var account = _repository.Find(a => a.Id == id);
             if (account == null)
             {
                 return NotFound(new { error = "Account not found." });
             }
 
-            // Prevent modification of main accounts (!IsMain means it's mutable)
-            if (account.IsMain)
+                        if (account.IsMain)
             {
                 return BadRequest(new { error = "Main accounts cannot be modified." });
             }
 
-            // Prevent changing IsMain to true if user already has a main account
-            if (updateDto.IsMain && !account.IsMain)
+                        if (updateDto.IsMain && !account.IsMain)
             {
                 var existingMainAccount = _repository.Find(a => a.UserId == updateDto.UserId && a.IsMain && a.Id != id);
                 if (existingMainAccount != null)
@@ -336,8 +325,7 @@ namespace Src.Controllers
 
         public (bool Success, string ErrorMessage) DeleteAllAccountsForUser(Guid userId)
         {
-            // Get all non-deleted accounts for this user with all components
-            var activeAccounts = _context.Accounts
+                        var activeAccounts = _context.Accounts
                 .Include(a => a.CoreDetails)
                 .Include(a => a.ActiveAccount)
                 .Include(a => a.SpendingLimit)
@@ -348,11 +336,9 @@ namespace Src.Controllers
             if (activeAccounts.Count == 0)
                 return (false, "No active accounts found for user.");
 
-            // Soft delete all user accounts and their components
-            foreach (var account in activeAccounts)
+                        foreach (var account in activeAccounts)
             {
-                // Soft delete account components
-                if (account.CoreDetails != null && !account.CoreDetails.IsDeleted)
+                                if (account.CoreDetails != null && !account.CoreDetails.IsDeleted)
                 {
                     account.CoreDetails.IsDeleted = true;
                     account.CoreDetails.DeletedAt = DateTime.UtcNow;
@@ -366,24 +352,20 @@ namespace Src.Controllers
 
                 if (account.SpendingLimit != null)
                 {
-                    // SpendingLimit doesn't inherit from IDeletable, so we remove it
-                    _context.Remove(account.SpendingLimit);
+                                        _context.Remove(account.SpendingLimit);
                 }
 
                 if (account.SavingGoal != null)
                 {
-                    // SavingGoal doesn't inherit from IDeletable, so we remove it
-                    _context.Remove(account.SavingGoal);
+                                        _context.Remove(account.SavingGoal);
                 }
 
-                // Soft delete the account itself
-                account.IsDeleted = true;
+                                account.IsDeleted = true;
                 account.DeletedAt = DateTime.UtcNow;
                 account.UpdatedAt = DateTime.UtcNow;
             }
 
-            // Save changes
-            _context.SaveChanges();
+                        _context.SaveChanges();
 
             return (true, string.Empty);
         }
@@ -391,8 +373,7 @@ namespace Src.Controllers
         [HttpDelete("{id}")]
         public ActionResult DeleteAccount(Guid id)
         {
-            // Get the account with its core details to check balance
-            var account = _context.Accounts
+                        var account = _context.Accounts
                 .Include(a => a.CoreDetails)
                 .Where(a => a.Id == id && !a.IsDeleted)
                 .FirstOrDefault();
@@ -402,14 +383,12 @@ namespace Src.Controllers
                 return NotFound(new { error = "Account not found or has already been deleted." });
             }
 
-            // Prevent deletion of main accounts - they are permanent
-            if (account.IsMain)
+                        if (account.IsMain)
             {
                 return BadRequest(new { error = "Main accounts cannot be deleted." });
             }
 
-            // Check if account has zero balance
-            if (account.CoreDetails != null && account.CoreDetails.Balance != 0)
+                        if (account.CoreDetails != null && account.CoreDetails.Balance != 0)
             {
                 return BadRequest(new { error = $"Account cannot be deleted because it has a non-zero balance of ${account.CoreDetails.Balance:F2}. Please transfer all funds before deleting the account." });
             }

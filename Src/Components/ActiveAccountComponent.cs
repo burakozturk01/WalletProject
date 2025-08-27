@@ -12,8 +12,7 @@ namespace Src.Components
         [ForeignKey("Account")]
         public Guid AccountId { get; set; }
 
-        // IBaseEntity.Id implementation - using AccountId as the primary key
-        public Guid Id 
+                public Guid Id 
         { 
             get => AccountId; 
             set => AccountId = value; 
@@ -31,11 +30,9 @@ namespace Src.Components
         public bool IsDeleted { get; set; }
         public DateTime? DeletedAt { get; set; }
 
-        // Navigation property
-        public virtual Account Account { get; set; } = null!;
+                public virtual Account Account { get; set; } = null!;
 
-        // TODO: Define criteria for non-default accounts to be eligible for activation:
-        public static bool MeetsActivationCriteria(Account account)
+                public static bool MeetsActivationCriteria(Account account)
         {
             return true;
         }
