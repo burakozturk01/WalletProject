@@ -200,9 +200,22 @@ class ApiClient {
         throw new Error(errorText || `HTTP error! status: ${response.status}`);
       }
 
+      // Check if response has content before trying to parse JSON
+      const contentLength = response.headers.get('content-length');
+      const contentType = response.headers.get('content-type');
+      
+      // If no content or content-length is 0, return empty object for successful responses
+      if (contentLength === '0' || (!contentType?.includes('application/json') && !await response.clone().text())) {
+        return {} as T;
+      }
+
       const data = await response.json();
       return data;
     } catch (error) {
+      // If it's a JSON parsing error and the response was successful, return empty object
+      if (error instanceof SyntaxError && error.message.includes('Unexpected end of JSON input')) {
+        return {} as T;
+      }
       console.error(`API request failed: ${endpoint}`, error);
       throw error;
     }
@@ -269,6 +282,9 @@ export const accountApi = {
   
   getAccountsByUser: (userId: string, params?: PaginationParams) =>
     apiClient.get<ApiResponse<Account[]>>(`/account/user/${userId}`, params),
+  
+  getAllAccountsByUserIncludingDeleted: (userId: string, params?: PaginationParams) =>
+    apiClient.get<ApiResponse<Account[]>>(`/account/user/${userId}/all`, params),
   
   createAccount: (data: AccountCreate) =>
     apiClient.post<Account>('/account', data),

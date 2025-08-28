@@ -11,6 +11,7 @@ import { AccountsPage } from '../components/user-app/pages/accounts/AccountsPage
 import { TransactionsPage } from '../components/user-app/pages/transactions/TransactionsPage';
 import { TransferPayPage } from '../components/user-app/pages/transfer-pay/TransferPayPage';
 import { SettingsPage } from '../components/user-app/pages/settings/SettingsPage';
+import { AdminPage } from '../components/admin-page/AdminPage';
 
 type AppProps = {
 }
@@ -31,6 +32,9 @@ export function App({}: AppProps) {
               <RegisterPage />
             </AuthRedirect>
           } />
+          
+          {/* Admin route - no authentication required for development */}
+          <Route path="/admin" element={<AdminPage />} />
           
           {/* Protected routes */}
           <Route path="/" element={

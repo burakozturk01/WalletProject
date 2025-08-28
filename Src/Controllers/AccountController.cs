@@ -140,7 +140,28 @@ namespace Src.Controllers
             return FindEntities(paginate, a => a.UserId == userId);
         }
 
-                [HttpGet("admin/all")]
+        [HttpGet("user/{userId}/all")]
+        public ActionResult<ListReadDTO<AccountReadDTO>> GetAllAccountsByUserIncludingDeleted(Guid userId, [FromQuery] PaginateDTO paginate)
+        {
+            var accountRepository = _repository as AccountRepository;
+            if (accountRepository != null)
+            {
+                var accounts = accountRepository.FindAll(a => a.UserId == userId, out int total)
+                    .Skip(paginate.Skip)
+                    .Take(paginate.Limit)
+                    .ToList();
+
+                var data = accounts.Select(accountRepository.ParseToRead);
+                return Ok(new ListReadDTO<AccountReadDTO>
+                {
+                    Data = data,
+                    Total = total,
+                });
+            }
+            return FindEntities(paginate, a => a.UserId == userId);
+        }
+
+        [HttpGet("admin/all")]
         public ActionResult<ListReadDTO<AccountReadDTO>> GetAllAccounts([FromQuery] PaginateDTO paginate)
         {
             var accountRepository = _repository as AccountRepository;
@@ -297,18 +318,18 @@ namespace Src.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-                        var account = _repository.Find(a => a.Id == id);
+            var account = _repository.Find(a => a.Id == id);
             if (account == null)
             {
                 return NotFound(new { error = "Account not found." });
             }
 
-                        if (account.IsMain)
+            if (account.IsMain)
             {
                 return BadRequest(new { error = "Main accounts cannot be modified." });
             }
 
-                        if (updateDto.IsMain && !account.IsMain)
+            if (updateDto.IsMain && !account.IsMain)
             {
                 var existingMainAccount = _repository.Find(a => a.UserId == updateDto.UserId && a.IsMain && a.Id != id);
                 if (existingMainAccount != null)
@@ -325,7 +346,7 @@ namespace Src.Controllers
 
         public (bool Success, string ErrorMessage) DeleteAllAccountsForUser(Guid userId)
         {
-                        var activeAccounts = _context.Accounts
+            var activeAccounts = _context.Accounts
                 .Include(a => a.CoreDetails)
                 .Include(a => a.ActiveAccount)
                 .Include(a => a.SpendingLimit)
@@ -336,9 +357,9 @@ namespace Src.Controllers
             if (activeAccounts.Count == 0)
                 return (false, "No active accounts found for user.");
 
-                        foreach (var account in activeAccounts)
+            foreach (var account in activeAccounts)
             {
-                                if (account.CoreDetails != null && !account.CoreDetails.IsDeleted)
+                if (account.CoreDetails != null && !account.CoreDetails.IsDeleted)
                 {
                     account.CoreDetails.IsDeleted = true;
                     account.CoreDetails.DeletedAt = DateTime.UtcNow;
@@ -352,20 +373,20 @@ namespace Src.Controllers
 
                 if (account.SpendingLimit != null)
                 {
-                                        _context.Remove(account.SpendingLimit);
+                    _context.Remove(account.SpendingLimit);
                 }
 
                 if (account.SavingGoal != null)
                 {
-                                        _context.Remove(account.SavingGoal);
+                    _context.Remove(account.SavingGoal);
                 }
 
-                                account.IsDeleted = true;
+                account.IsDeleted = true;
                 account.DeletedAt = DateTime.UtcNow;
                 account.UpdatedAt = DateTime.UtcNow;
             }
 
-                        _context.SaveChanges();
+            _context.SaveChanges();
 
             return (true, string.Empty);
         }
@@ -373,25 +394,19 @@ namespace Src.Controllers
         [HttpDelete("{id}")]
         public ActionResult DeleteAccount(Guid id)
         {
-                        var account = _context.Accounts
+            var account = _context.Accounts
                 .Include(a => a.CoreDetails)
                 .Where(a => a.Id == id && !a.IsDeleted)
                 .FirstOrDefault();
 
             if (account == null)
-            {
                 return NotFound(new { error = "Account not found or has already been deleted." });
-            }
 
-                        if (account.IsMain)
-            {
+            if (account.IsMain)
                 return BadRequest(new { error = "Main accounts cannot be deleted." });
-            }
 
-                        if (account.CoreDetails != null && account.CoreDetails.Balance != 0)
-            {
+            if (account.CoreDetails != null && account.CoreDetails.Balance != 0)
                 return BadRequest(new { error = $"Account cannot be deleted because it has a non-zero balance of ${account.CoreDetails.Balance:F2}. Please transfer all funds before deleting the account." });
-            }
 
             return RemoveEntity(a => a.Id == id);
         }

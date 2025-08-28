@@ -6,7 +6,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Src.Entities;
+using Src.Components;
 using Src.Repositories;
+using Src.Database;
 using System.ComponentModel.DataAnnotations;
 
 namespace Src.Controllers
@@ -56,11 +58,13 @@ namespace Src.Controllers
     public class AuthController : ControllerBase
     {
         private readonly UserRepository _userRepository;
+        private readonly AppDbContext _context;
         private readonly IConfiguration _configuration;
 
-        public AuthController(UserRepository userRepository, IConfiguration configuration)
+        public AuthController(UserRepository userRepository, AppDbContext context, IConfiguration configuration)
         {
             _userRepository = userRepository;
+            _context = context;
             _configuration = configuration;
         }
 
@@ -115,6 +119,7 @@ namespace Src.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
+            using var dbTransaction = _context.Database.BeginTransaction();
             try
             {
                 // Check if username already exists
@@ -143,9 +148,38 @@ namespace Src.Controllers
                     IsDeleted = false
                 };
 
-                // Save user to database
+                // Create default main account for the user
+                var defaultAccount = new Account
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = user.Id,
+                    IsMain = true,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                    IsDeleted = false
+                };
+
+                // Create core details for the main account
+                defaultAccount.CoreDetails = new CoreDetailsComponent
+                {
+                    Id = Guid.NewGuid(),
+                    AccountId = defaultAccount.Id,
+                    Name = "Main Account",
+                    Balance = 0.00m,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                    IsDeleted = false
+                };
+
+                // Add the default account to the user
+                user.Accounts.Add(defaultAccount);
+
+                // Save user and account to database
                 _userRepository.Add(user);
                 _userRepository.SaveChanges();
+
+                // Commit the transaction
+                dbTransaction.Commit();
 
                 // Generate JWT token
                 var token = GenerateJwtToken(user);
@@ -167,6 +201,8 @@ namespace Src.Controllers
             }
             catch (Exception ex)
             {
+                dbTransaction.Rollback();
+                
                 if (ex.Message.Contains("UNIQUE constraint failed") || ex.InnerException?.Message.Contains("UNIQUE constraint failed") == true)
                 {
                     return BadRequest("Username or email already exists. Please use different values.");

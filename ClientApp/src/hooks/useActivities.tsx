@@ -3,7 +3,7 @@ import { api, Transaction, User, Account } from '../services/api';
 
 export interface Activity {
   id: string;
-  type: 'user_created' | 'account_created' | 'account_deleted' | 'transaction' | 'component_created' | 'component_deleted';
+  type: 'user_created' | 'account_created' | 'account_deleted' | 'transaction' | 'deposit' | 'withdrawal' | 'transfer' | 'component_created' | 'component_deleted';
   title: string;
   description: string;
   timestamp: string;
@@ -11,6 +11,8 @@ export interface Activity {
   icon: string;
   color: string;
   metadata?: any;
+  category: 'account' | 'transaction' | 'user' | 'system';
+  priority: 'high' | 'medium' | 'low';
 }
 
 export interface UseActivitiesReturn {
@@ -49,19 +51,38 @@ export function useActivities(userId?: string, timeFilter: string = 'week'): Use
     let description = transaction.description;
     let color = 'text-blue-600';
     let icon = 'ArrowRight';
+    let category: Activity['category'] = 'transaction';
+    let priority: Activity['priority'] = 'medium';
 
+    // Determine transaction type based on source and destination
     if (transaction.sourceType === 0 && transaction.destinationType === 1) {
-      title = 'Deposit';
+      // External to Account = Deposit
+      type = 'deposit';
+      title = 'Money Deposited';
       color = 'text-green-600';
       icon = 'TrendingUp';
+      priority = 'high';
+      description = `Deposited $${transaction.amount.toLocaleString()} ${transaction.description ? `- ${transaction.description}` : ''}`;
     } else if (transaction.sourceType === 1 && transaction.destinationType === 0) {
-      title = 'Withdrawal';
+      // Account to External = Withdrawal
+      type = 'withdrawal';
+      title = 'Money Withdrawn';
       color = 'text-red-600';
       icon = 'TrendingDown';
-    } else {
-      title = 'Transfer';
+      priority = 'high';
+      description = `Withdrew $${transaction.amount.toLocaleString()} ${transaction.description ? `- ${transaction.description}` : ''}`;
+    } else if (transaction.sourceType === 1 && transaction.destinationType === 1) {
+      // Account to Account = Transfer
+      type = 'transfer';
+      title = 'Money Transferred';
       color = 'text-blue-600';
       icon = 'ArrowRight';
+      priority = 'medium';
+      description = `Transferred $${transaction.amount.toLocaleString()} ${transaction.description ? `- ${transaction.description}` : ''}`;
+    } else {
+      // Other transaction types
+      title = 'Transaction';
+      description = `${transaction.description} - $${transaction.amount.toLocaleString()}`;
     }
 
     return {
@@ -73,6 +94,8 @@ export function useActivities(userId?: string, timeFilter: string = 'week'): Use
       amount: transaction.amount,
       icon,
       color,
+      category,
+      priority,
       metadata: transaction
     };
   };
@@ -81,28 +104,33 @@ export function useActivities(userId?: string, timeFilter: string = 'week'): Use
     return {
       id: user.id,
       type: 'user_created',
-      title: 'Account Created',
-      description: `Welcome ${user.username}! Your Wallet account has been created.`,
+      title: 'Wallet Account Created',
+      description: `Welcome ${user.username}! Your Wallet account has been successfully created and is ready to use.`,
       timestamp: user.createdAt,
       icon: 'UserPlus',
       color: 'text-purple-600',
+      category: 'user',
+      priority: 'high',
       metadata: user
     };
   };
 
   const formatAccountActivity = (account: Account, isDeleted: boolean = false): Activity => {
     const accountName = account.coreDetails?.name || 'Account';
+    const balance = account.coreDetails?.balance || 0;
     
     return {
       id: account.id,
       type: isDeleted ? 'account_deleted' : 'account_created',
-      title: isDeleted ? 'Account Deleted' : 'Account Created',
+      title: isDeleted ? 'Account Deleted' : 'New Account Created',
       description: isDeleted 
-        ? `Account "${accountName}" was deleted`
-        : `New account "${accountName}" was created`,
+        ? `Account "${accountName}" was permanently deleted`
+        : `New account "${accountName}" was created with initial balance of $${balance.toLocaleString()}`,
       timestamp: isDeleted ? (account.deletedAt || account.updatedAt) : account.createdAt,
       icon: isDeleted ? 'Trash2' : 'Plus',
       color: isDeleted ? 'text-red-600' : 'text-green-600',
+      category: 'account',
+      priority: isDeleted ? 'high' : 'medium',
       metadata: account
     };
   };
@@ -115,17 +143,32 @@ export function useActivities(userId?: string, timeFilter: string = 'week'): Use
       const filterDate = getTimeFilterDate(timeFilter);
       const allActivities: Activity[] = [];
 
-      // Fetch transactions
-      try {
-        const transactionsResponse = await api.transaction.getTransactions({ limit: 100 });
-        const filteredTransactions = transactionsResponse.data.filter(t => 
-          new Date(t.timestamp) >= filterDate
-        );
-        
-        const transactionActivities = filteredTransactions.map(formatTransactionActivity);
-        allActivities.push(...transactionActivities);
-      } catch (err) {
-        console.warn('Failed to fetch transactions:', err);
+      // Fetch user-specific transactions
+      if (userId) {
+        try {
+          // Get user's accounts first
+          const accountsResponse = await api.account.getAccountsByUser(userId, { limit: 100 });
+          const userAccountIds = accountsResponse.data.map(a => a.id);
+          
+          // Fetch transactions for all user accounts
+          const transactionPromises = userAccountIds.map(accountId => 
+            api.transaction.getTransactionsByAccount(accountId, { limit: 50 })
+          );
+          
+          const transactionResponses = await Promise.all(transactionPromises);
+          const allTransactions = transactionResponses.flatMap(response => response.data);
+          
+          // Remove duplicates and filter by date
+          const uniqueTransactions = allTransactions.filter((transaction, index, self) => 
+            index === self.findIndex(t => t.id === transaction.id) &&
+            new Date(transaction.timestamp) >= filterDate
+          );
+          
+          const transactionActivities = uniqueTransactions.map(formatTransactionActivity);
+          allActivities.push(...transactionActivities);
+        } catch (err) {
+          console.warn('Failed to fetch transactions:', err);
+        }
       }
 
       // Fetch user creation activity (if current user)
