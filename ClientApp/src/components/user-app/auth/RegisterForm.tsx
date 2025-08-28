@@ -65,7 +65,7 @@ export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
             Create Account
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mt-2">
-            Join us and start managing your wallet
+            Join us and start managing your Wallet
           </p>
         </div>
 

@@ -38,7 +38,7 @@ export function LoginForm({ onSwitchToRegister }: LoginFormProps) {
             Welcome Back
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mt-2">
-            Sign in to your wallet account
+            Sign in to your Wallet account
           </p>
         </div>
 
