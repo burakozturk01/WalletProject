@@ -167,9 +167,7 @@ export interface TokenValidationResponse {
 export interface UserSettings {
   id: string;
   userId: string;
-  settings: Record<string, any>;
-  createdAt: string;
-  updatedAt: string;
+  settingsJson: string;
 }
 
 export interface SettingsUpdateRequest {

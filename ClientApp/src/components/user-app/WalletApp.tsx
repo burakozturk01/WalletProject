@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
 import { Sidebar, HeaderBar } from './layout';
 import { Dashboard } from './pages/dashboard/Dashboard';
+import { SettingsPage } from './pages/settings/SettingsPage';
 import { AuthPage } from './auth';
 import { useAuth } from '../../hooks/useAuth';
+import { TransferPayPage } from './pages/transfer-pay/TransferPayPage';
+import { TransactionsPage } from './pages/transactions/TransactionsPage';
+import { AccountsPage } from './pages/accounts/AccountsPage';
 
 export interface WalletAppProps {
   dark?: boolean;
@@ -63,13 +67,13 @@ export function WalletApp({ dark = true }: WalletAppProps) {
           />
         );
       case 'Accounts':
-        return <div className="p-4">Accounts page - Coming soon</div>;
+        return <AccountsPage />;
       case 'Transactions':
-        return <div className="p-4">Transactions page - Coming soon</div>;
+        return <TransactionsPage />;
       case 'Transfer & Pay':
-        return <div className="p-4">Transfer & Pay page - Coming soon</div>;
+        return <TransferPayPage />;
       case 'Settings':
-        return <div className="p-4">Settings page - Coming soon</div>;
+        return <SettingsPage />;
       default:
         return (
           <Dashboard

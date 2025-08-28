@@ -20,8 +20,18 @@ export function useUserSettings(): UseUserSettingsReturn {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Get current settings values with defaults
-  const settings = userSettings?.settings || {};
+  // Get current settings values with defaults - parse JSON from backend
+  const settings = userSettings?.settingsJson 
+    ? (() => {
+        try {
+          return JSON.parse(userSettings.settingsJson);
+        } catch (e) {
+          console.error('Failed to parse settings JSON:', e);
+          return {};
+        }
+      })()
+    : {};
+  
   const settingsWithDefaults = {
     ...SettingsRegistry.getDefaultValues(),
     ...settings,
