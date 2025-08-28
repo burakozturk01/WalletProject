@@ -62,7 +62,7 @@ export interface Transaction {
   deletedAt?: string;
 }
 
-export function DatabaseTester() {
+export function AdminPage() {
   const [activeTab, setActiveTab] = useState<'users' | 'accounts' | 'transactions'>('users');
   const [users, setUsers] = useState<User[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Transaction, Account, User } from './DatabaseTester';
+import { Transaction, Account, User } from './AdminPage';
 
 interface TransactionManagerProps {
   transactions: Transaction[];

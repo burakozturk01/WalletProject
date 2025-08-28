@@ -177,6 +177,7 @@ namespace Src.Controllers
         }
 
         [HttpPost("validate")]
+        [Microsoft.AspNetCore.Authorization.Authorize]
         public ActionResult<UserAuthDTO> ValidateToken()
         {
             try
@@ -212,10 +213,9 @@ namespace Src.Controllers
 
         private string GenerateJwtToken(User user)
         {
-            var jwtSettings = _configuration.GetSection("JwtSettings");
-            var secretKey = jwtSettings["SecretKey"] ?? "your-super-secret-key-that-should-be-at-least-32-characters-long";
-            var issuer = jwtSettings["Issuer"] ?? "WalletProject";
-            var audience = jwtSettings["Audience"] ?? "WalletProject";
+            var secretKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY") ?? "your-super-secret-key-that-should-be-at-least-32-characters-long";
+            var issuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? "WalletProject";
+            var audience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? "WalletProject";
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);

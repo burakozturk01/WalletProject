@@ -12,29 +12,19 @@ import { NavItem } from './NavItem';
 import { Avatar } from '../shared/ui';
 
 export interface SidebarProps {
-  activeSection: string;
   userName?: string;
   dark?: boolean;
-  onNavigate?: (section: string) => void;
   onLogout?: () => void;
   className?: string;
 }
 
 export function Sidebar({ 
-  activeSection, 
   userName = 'User', 
   dark = false, 
-  onNavigate,
   onLogout,
   className = '' 
 }: SidebarProps) {
   const backgroundColor = dark ? '#212529' : '#f8f9fa';
-
-  const handleNavigation = (section: string) => {
-    if (onNavigate) {
-      onNavigate(section);
-    }
-  };
 
   return (
     <aside 
@@ -53,26 +43,22 @@ export function Sidebar({
           <NavItem 
             icon={LayoutDashboard} 
             label="Dashboard" 
-            active={activeSection === 'Dashboard'}
-            onClick={() => handleNavigation('Dashboard')}
+            to="/dashboard"
           />
           <NavItem 
             icon={CreditCard} 
             label="Accounts" 
-            active={activeSection === 'Accounts'}
-            onClick={() => handleNavigation('Accounts')}
+            to="/accounts"
           />
           <NavItem 
             icon={ReceiptText} 
             label="Transactions" 
-            active={activeSection === 'Transactions'}
-            onClick={() => handleNavigation('Transactions')}
+            to="/transactions"
           />
           <NavItem 
             icon={SendHorizonal} 
             label="Transfer & Pay" 
-            active={activeSection === 'Transfer & Pay'}
-            onClick={() => handleNavigation('Transfer & Pay')}
+            to="/transfer-pay"
           />
         </nav>
         
@@ -82,8 +68,7 @@ export function Sidebar({
           <NavItem 
             icon={Settings} 
             label="Settings"
-            active={activeSection === 'Settings'}
-            onClick={() => handleNavigation('Settings')}
+            to="/settings"
           />
           <NavItem 
             icon={LogOut} 

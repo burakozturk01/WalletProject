@@ -304,7 +304,11 @@ export const authApi = {
     apiClient.post<AuthResponse>('/auth/register', credentials),
   
   validateToken: () =>
-    apiClient.get<TokenValidationResponse>('/auth/validate'),
+    apiClient.post<{
+      id: string;
+      username: string;
+      email: string;
+    }>('/auth/validate'),
 };
 
 // Export default API object

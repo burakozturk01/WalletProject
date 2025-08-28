@@ -48,11 +48,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (token) {
           // Validate token with backend
           const response = await api.auth.validateToken();
-          if (response.isValid && response.user) {
+          if (response && response.id) {
             setUser({
-              id: response.user.id,
-              username: response.user.username,
-              email: response.user.email,
+              id: response.id,
+              username: response.username,
+              email: response.email,
             });
           } else {
             // Token is invalid, clear storage

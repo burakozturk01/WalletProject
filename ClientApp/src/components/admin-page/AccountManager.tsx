@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Account, User } from './DatabaseTester';
+import { Account, User } from './AdminPage';
 
 interface AccountManagerProps {
   accounts: Account[];

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User } from './DatabaseTester';
+import { User } from './AdminPage';
 
 interface UserTotalBalance {
   userId: string;
