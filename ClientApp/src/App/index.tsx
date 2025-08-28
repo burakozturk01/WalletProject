@@ -1,14 +1,15 @@
 import React from 'react';
-import { Container } from './styles';
+import { DatabaseTester } from '../components/DatabaseTester';
 import { WalletApp } from '../components/user-app';
+import { AuthProvider } from '../hooks/useAuth';
 
 type AppProps = {
 }
 
 export function App({}: AppProps) {
   return (
-    <Container>
+    <AuthProvider>
       <WalletApp />
-    </Container>
+    </AuthProvider>
   );
 }

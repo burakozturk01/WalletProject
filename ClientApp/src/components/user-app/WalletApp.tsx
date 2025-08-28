@@ -7,7 +7,7 @@ export interface WalletAppProps {
   dark?: boolean;
 }
 
-export function WalletApp({ userName = 'burakozturk', dark = false }: WalletAppProps) {
+export function WalletApp({ userName = 'burakozturk', dark = true }: WalletAppProps) {
   const [activeSection, setActiveSection] = useState('Dashboard');
 
   const handleNavigation = (section: string) => {

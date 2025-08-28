@@ -30,6 +30,18 @@ namespace WalletProject
             services.AddScoped<IRepository<Account, AccountReadDTO>, AccountRepository>();
             services.AddScoped<ITransactionRepository, TransactionRepository>();
 
+            // Add CORS
+            services.AddCors(options =>
+            {
+                options.AddPolicy("AllowReactApp", builder =>
+                {
+                    builder.WithOrigins("http://localhost:5173")
+                           .AllowAnyMethod()
+                           .AllowAnyHeader()
+                           .AllowCredentials();
+                });
+            });
+
             services.AddControllersWithViews();
 
             services.AddSpaStaticFiles(configuration =>
@@ -49,6 +61,9 @@ namespace WalletProject
             app.UseSpaStaticFiles();
 
             app.UseRouting();
+
+            // Use CORS
+            app.UseCors("AllowReactApp");
 
             app.UseEndpoints(endpoints =>
             {

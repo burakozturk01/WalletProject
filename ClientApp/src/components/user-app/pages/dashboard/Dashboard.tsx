@@ -2,6 +2,9 @@ import React from 'react';
 import { Plus, ArrowUpRight, ArrowRight } from 'lucide-react';
 import { Card, Button } from '../../shared/ui';
 import { Sparkline } from '../../shared/charts';
+import { useAuth } from '../../../../hooks/useAuth';
+import { useUserData } from '../../../../hooks/useUserData';
+import { useRecentTransactions } from '../../../../hooks/useTransactions';
 
 export interface DashboardProps {
   totalBalance?: number;
@@ -12,17 +15,41 @@ export interface DashboardProps {
 }
 
 export function Dashboard({ 
-  totalBalance = 15432.55, 
   onDeposit,
   onWithdraw,
   onTransfer,
   className = '' 
 }: DashboardProps) {
+  const { user } = useAuth();
+  const { totalBalance, accounts, isLoading, error } = useUserData(user?.id);
+  const { recentTransactions } = useRecentTransactions(undefined, 5);
+
+  if (isLoading) {
+    return (
+      <div className={`p-4 ${className}`}>
+        <div className="text-center text-gray-500">Loading dashboard...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className={`p-4 ${className}`}>
+        <div className="text-center text-red-500">Error: {error}</div>
+      </div>
+    );
+  }
+
+  const displayBalance = totalBalance?.totalBalance || 0;
+
   return (
     <div className={`p-4 grid grid-cols-2 gap-4 ${className}`}>
       <Card title="Total Balance">
         <div className="text-3xl font-extrabold text-green-600">
-          ${totalBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          ${displayBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+        </div>
+        <div className="text-sm text-gray-500 mt-2">
+          {totalBalance?.activeAccountCount || 0} active accounts
         </div>
         <Sparkline color="#28a745" />
       </Card>
