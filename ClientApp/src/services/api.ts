@@ -164,6 +164,23 @@ export interface TokenValidationResponse {
   };
 }
 
+export interface UserSettings {
+  id: string;
+  userId: string;
+  settings: Record<string, any>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SettingsUpdateRequest {
+  settings: Record<string, any>;
+}
+
+export interface SettingUpdateRequest {
+  key: string;
+  value: any;
+}
+
 // Generic API client
 class ApiClient {
   private baseUrl: string;
@@ -327,12 +344,34 @@ export const authApi = {
     }>('/auth/validate'),
 };
 
+// Settings API
+export const settingsApi = {
+  getUserSettings: () =>
+    apiClient.get<UserSettings>('/settings'),
+  
+  updateUserSettings: (data: SettingsUpdateRequest) =>
+    apiClient.put<UserSettings>('/settings', data),
+  
+  updateSetting: (data: SettingUpdateRequest) =>
+    apiClient.put<UserSettings>('/settings/setting', data),
+  
+  getSetting: (key: string) =>
+    apiClient.get<{ key: string; value: any }>(`/settings/setting/${key}`),
+  
+  deleteSetting: (key: string) =>
+    apiClient.delete(`/settings/setting/${key}`),
+  
+  resetToDefaults: () =>
+    apiClient.post<UserSettings>('/settings/reset'),
+};
+
 // Export default API object
 export const api = {
   user: userApi,
   account: accountApi,
   transaction: transactionApi,
   auth: authApi,
+  settings: settingsApi,
 };
 
 export default api;

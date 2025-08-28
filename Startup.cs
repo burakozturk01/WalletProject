@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.StaticFiles;
 using System;
 using System.Text;
 using Src.Database;
@@ -13,6 +14,7 @@ using Src.Repositories;
 using Src.Controllers;
 using Src.Entities;
 using Src.Shared.Repository;
+using Src.Services;
 
 namespace WalletProject
 {
@@ -34,6 +36,7 @@ namespace WalletProject
             services.AddScoped<IRepository<Account, AccountReadDTO>, AccountRepository>();
             services.AddScoped<ITransactionRepository, TransactionRepository>();
             services.AddScoped<UserRepository>();
+            services.AddScoped<IUserSettingsService, UserSettingsService>();
 
             // Add JWT Authentication
             var secretKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY") ?? "your-super-secret-key-that-should-be-at-least-32-characters-long";
@@ -104,20 +107,29 @@ namespace WalletProject
 
             app.UseEndpoints(endpoints =>
             {
+                // Map API routes first to ensure they're handled by controllers
+                endpoints.MapControllerRoute(
+                    name: "api",
+                    pattern: "api/{controller}/{action=Index}/{id?}");
+                
                 endpoints.MapControllerRoute(
                     name: "default",
                     pattern: "{controller}/{action=Index}/{id?}");
             });
 
-            app.UseSpa(spa =>
+            // Use conditional SPA proxy - only proxy non-API requests
+            app.UseWhen(context => !context.Request.Path.StartsWithSegments("/api"), appBuilder =>
             {
-                spa.Options.SourcePath = "ClientApp";
-
-                if (env.IsDevelopment())
+                appBuilder.UseSpa(spa =>
                 {
-                    var frontendUrl = Environment.GetEnvironmentVariable("FRONTEND_URL") ?? "http://localhost:5173";
-                    spa.UseProxyToSpaDevelopmentServer(frontendUrl);
-                }
+                    spa.Options.SourcePath = "ClientApp";
+
+                    if (env.IsDevelopment())
+                    {
+                        var frontendUrl = Environment.GetEnvironmentVariable("FRONTEND_URL") ?? "http://localhost:5173";
+                        spa.UseProxyToSpaDevelopmentServer(frontendUrl);
+                    }
+                });
             });
         }
     }

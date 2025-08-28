@@ -28,5 +28,6 @@ namespace Src.Entities
         public DateTime? DeletedAt { get; set; }
 
         public virtual ICollection<Account> Accounts { get; set; } = new List<Account>();
+        public virtual UserSettings? Settings { get; set; }
     }
 }

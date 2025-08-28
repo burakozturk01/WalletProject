@@ -16,9 +16,10 @@ namespace Src.Database
         public AppDbContext(DbContextOptions<AppDbContext> options): base(options)
         { }
 
-                public DbSet<User> Users { get; set; }
+        public DbSet<User> Users { get; set; }
         public DbSet<Account> Accounts { get; set; }
         public DbSet<Transaction> Transactions { get; set; }
+        public DbSet<UserSettings> UserSettings { get; set; }
 
                 public DbSet<CoreDetailsComponent> CoreDetailsComponents { get; set; }
         public DbSet<ActiveAccountComponent> ActiveAccountComponents { get; set; }
@@ -29,7 +30,7 @@ namespace Src.Database
         {
             base.OnModelCreating(modelBuilder);
 
-                        modelBuilder.Entity<User>().HasQueryFilter(e => !e.IsDeleted);
+            modelBuilder.Entity<User>().HasQueryFilter(e => !e.IsDeleted);
             modelBuilder.Entity<Account>().HasQueryFilter(e => !e.IsDeleted);
             modelBuilder.Entity<CoreDetailsComponent>().HasQueryFilter(e => !e.IsDeleted);
             modelBuilder.Entity<ActiveAccountComponent>().HasQueryFilter(e => !e.IsDeleted);
@@ -40,12 +41,20 @@ namespace Src.Database
                 entity.HasIndex(e => e.Email).IsUnique();
             });
 
-                        modelBuilder.Entity<Account>(entity =>
+            modelBuilder.Entity<Account>(entity =>
             {
                 entity.HasOne(a => a.User)
                     .WithMany(u => u.Accounts)
                     .HasForeignKey(a => a.UserId)
                     .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<UserSettings>(entity =>
+            {
+                entity.HasOne(s => s.User)
+                    .WithOne(u => u.Settings)
+                    .HasForeignKey<UserSettings>(s => s.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
 
                         modelBuilder.Entity<Transaction>(entity =>
