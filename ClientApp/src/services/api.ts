@@ -1,5 +1,5 @@
 // Base API configuration
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = '/api';
 
 // API response types
 export interface ApiResponse<T> {
@@ -134,12 +134,47 @@ export interface TransactionCreate {
   timestamp?: string;
 }
 
+// Authentication types
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface RegisterRequest {
+  username: string;
+  email: string;
+  password: string;
+}
+
+export interface AuthResponse {
+  token: string;
+  user: {
+    id: string;
+    username: string;
+    email: string;
+  };
+}
+
+export interface TokenValidationResponse {
+  isValid: boolean;
+  user?: {
+    id: string;
+    username: string;
+    email: string;
+  };
+}
+
 // Generic API client
 class ApiClient {
   private baseUrl: string;
 
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl;
+  }
+
+  private getAuthHeaders(): Record<string, string> {
+    const token = localStorage.getItem('auth_token');
+    return token ? { Authorization: `Bearer ${token}` } : {};
   }
 
   private async request<T>(
@@ -151,6 +186,7 @@ class ApiClient {
     const config: RequestInit = {
       headers: {
         'Content-Type': 'application/json',
+        ...this.getAuthHeaders(),
         ...options.headers,
       },
       ...options,
@@ -259,11 +295,24 @@ export const transactionApi = {
     apiClient.post<Transaction>('/transaction', data),
 };
 
+// Authentication API
+export const authApi = {
+  login: (credentials: LoginRequest) =>
+    apiClient.post<AuthResponse>('/auth/login', credentials),
+  
+  register: (credentials: RegisterRequest) =>
+    apiClient.post<AuthResponse>('/auth/register', credentials),
+  
+  validateToken: () =>
+    apiClient.get<TokenValidationResponse>('/auth/validate'),
+};
+
 // Export default API object
 export const api = {
   user: userApi,
   account: accountApi,
   transaction: transactionApi,
+  auth: authApi,
 };
 
 export default api;

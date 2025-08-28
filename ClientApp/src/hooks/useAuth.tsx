@@ -1,5 +1,6 @@
 import React, { useState, useEffect, createContext, useContext } from 'react';
 import type { ReactNode } from 'react';
+import { api } from '../services/api';
 
 // Auth types
 export interface AuthUser {
@@ -43,11 +44,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const checkAuth = async () => {
       try {
         const token = localStorage.getItem('auth_token');
-        const userData = localStorage.getItem('auth_user');
         
-        if (token && userData) {
-          // TODO: Validate token with backend
-          setUser(JSON.parse(userData));
+        if (token) {
+          // Validate token with backend
+          const response = await api.auth.validateToken();
+          if (response.isValid && response.user) {
+            setUser({
+              id: response.user.id,
+              username: response.user.username,
+              email: response.user.email,
+            });
+          } else {
+            // Token is invalid, clear storage
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('auth_user');
+          }
         }
       } catch (error) {
         console.error('Auth check failed:', error);
@@ -66,19 +77,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setError(null);
     
     try {
-      // TODO: Replace with actual login API call
-      // For now, simulate login with mock data
-      const mockUser: AuthUser = {
-        id: '1',
-        username: 'burakozturk',
-        email: credentials.email,
+      const response = await api.auth.login(credentials);
+      
+      const authUser: AuthUser = {
+        id: response.user.id,
+        username: response.user.username,
+        email: response.user.email,
       };
       
-      const mockToken = 'mock_jwt_token_' + Date.now();
-      
-      localStorage.setItem('auth_token', mockToken);
-      localStorage.setItem('auth_user', JSON.stringify(mockUser));
-      setUser(mockUser);
+      localStorage.setItem('auth_token', response.token);
+      localStorage.setItem('auth_user', JSON.stringify(authUser));
+      setUser(authUser);
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Login failed');
       throw error;
@@ -92,19 +101,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setError(null);
     
     try {
-      // TODO: Replace with actual register API call
-      // For now, simulate registration
-      const mockUser: AuthUser = {
-        id: '1',
-        username: credentials.username,
-        email: credentials.email,
+      const response = await api.auth.register(credentials);
+      
+      const authUser: AuthUser = {
+        id: response.user.id,
+        username: response.user.username,
+        email: response.user.email,
       };
       
-      const mockToken = 'mock_jwt_token_' + Date.now();
-      
-      localStorage.setItem('auth_token', mockToken);
-      localStorage.setItem('auth_user', JSON.stringify(mockUser));
-      setUser(mockUser);
+      localStorage.setItem('auth_token', response.token);
+      localStorage.setItem('auth_user', JSON.stringify(authUser));
+      setUser(authUser);
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Registration failed');
       throw error;

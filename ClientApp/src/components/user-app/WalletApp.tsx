@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { Sidebar, HeaderBar } from './layout';
 import { Dashboard } from './pages/dashboard/Dashboard';
+import { AuthPage } from './auth';
+import { useAuth } from '../../hooks/useAuth';
 
 export interface WalletAppProps {
-  userName?: string;
   dark?: boolean;
 }
 
-export function WalletApp({ userName = 'burakozturk', dark = true }: WalletAppProps) {
+export function WalletApp({ dark = true }: WalletAppProps) {
+  const { user, isLoading, isAuthenticated, logout } = useAuth();
   const [activeSection, setActiveSection] = useState('Dashboard');
 
   const handleNavigation = (section: string) => {
@@ -15,8 +17,7 @@ export function WalletApp({ userName = 'burakozturk', dark = true }: WalletAppPr
   };
 
   const handleLogout = () => {
-    console.log('Logout clicked');
-    // TODO: Implement logout logic
+    logout();
   };
 
   const handleDeposit = () => {
@@ -33,6 +34,23 @@ export function WalletApp({ userName = 'burakozturk', dark = true }: WalletAppPr
     console.log('Transfer clicked');
     // TODO: Implement transfer logic
   };
+
+  // Show loading spinner while checking authentication
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show auth page if not authenticated
+  if (!isAuthenticated) {
+    return <AuthPage />;
+  }
 
   const renderContent = () => {
     switch (activeSection) {
@@ -68,7 +86,7 @@ export function WalletApp({ userName = 'burakozturk', dark = true }: WalletAppPr
       <div className="flex h-full">
         <Sidebar
           activeSection={activeSection}
-          userName={userName}
+          userName={user?.username || 'User'}
           dark={dark}
           onNavigate={handleNavigation}
           onLogout={handleLogout}
