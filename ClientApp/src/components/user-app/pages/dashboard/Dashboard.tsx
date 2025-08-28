@@ -5,6 +5,7 @@ import { Sparkline } from '../../shared/charts';
 import { useAuth } from '../../../../hooks/useAuth';
 import { useUserData } from '../../../../hooks/useUserData';
 import { useActivities, Activity } from '../../../../hooks/useActivities';
+import { useTimezone } from '../../../../hooks/useTimezone';
 
 export interface DashboardProps {
   totalBalance?: number;
@@ -22,6 +23,7 @@ export function Dashboard({
 }: DashboardProps) {
   const { user } = useAuth();
   const { totalBalance, accounts, isLoading, error } = useUserData(user?.id);
+  const { formatActivityDate } = useTimezone();
   const [timeFilter, setTimeFilter] = useState('week');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const { activities, isLoading: activitiesLoading, error: activitiesError, refreshActivities } = useActivities(user?.id, timeFilter);
@@ -148,26 +150,12 @@ export function Dashboard({
         )}
         <div className="text-sm text-gray-500 flex items-center justify-end mt-1">
           <Clock size={12} className="mr-1" />
-          {formatDate(activity.timestamp)}
+          {formatActivityDate(activity.timestamp)}
         </div>
       </div>
     </div>
   );
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
-    
-    if (diffInHours < 1) {
-      return 'Just now';
-    } else if (diffInHours < 24) {
-      return `${diffInHours}h ago`;
-    } else {
-      const diffInDays = Math.floor(diffInHours / 24);
-      return `${diffInDays}d ago`;
-    }
-  };
 
   return (
     <div className={`p-4 space-y-4 ${className}`}>

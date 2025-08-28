@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { User } from './AdminPage';
+import { useTimezone } from '../../hooks/useTimezone';
 
 interface UserTotalBalance {
   userId: string;
@@ -14,6 +15,7 @@ interface UserManagerProps {
 }
 
 export function UserManager({ users, onRefresh }: UserManagerProps) {
+  const { formatDate } = useTimezone();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [formData, setFormData] = useState({
     username: '',
@@ -288,7 +290,7 @@ export function UserManager({ users, onRefresh }: UserManagerProps) {
                       )}
                     </td>
                     <td style={{ padding: '12px', border: '1px solid #dee2e6' }}>
-                      {new Date(user.createdAt).toLocaleDateString()}
+                      {formatDate(user.createdAt)}
                     </td>
                     <td style={{ padding: '12px', border: '1px solid #dee2e6' }}>
                       <span style={{
@@ -316,7 +318,7 @@ export function UserManager({ users, onRefresh }: UserManagerProps) {
                           fontStyle: 'italic',
                           fontSize: '12px'
                         }}>
-                          Deleted on {user.deletedAt ? new Date(user.deletedAt).toLocaleDateString() : 'Unknown'}
+                          Deleted on {user.deletedAt ? formatDate(user.deletedAt) : 'Unknown'}
                         </span>
                       )}
                     </td>

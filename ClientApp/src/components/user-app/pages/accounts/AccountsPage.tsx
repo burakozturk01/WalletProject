@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
-import { Plus, CreditCard, Trash2, Edit3, Eye, EyeOff } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Eye, EyeOff, Calendar, CreditCard } from 'lucide-react';
 import { Card, Button } from '../../shared/ui';
 import { useAuth } from '../../../../hooks/useAuth';
 import { useUserData } from '../../../../hooks/useUserData';
+import { useTimezone } from '../../../../hooks/useTimezone';
 import { api } from '../../../../services/api';
 
 export function AccountsPage() {
   const { user } = useAuth();
   const { accounts, totalBalance, isLoading, error, refreshData } = useUserData(user?.id);
+  const { formatDate } = useTimezone();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showBalances, setShowBalances] = useState(true);
   const [formData, setFormData] = useState({
@@ -258,7 +260,7 @@ export function AccountsPage() {
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-gray-600">Created:</span>
                       <span className="text-sm text-gray-900">
-                        {new Date(account.createdAt).toLocaleDateString()}
+                        {formatDate(account.createdAt)}
                       </span>
                     </div>
 

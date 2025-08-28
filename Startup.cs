@@ -37,6 +37,7 @@ namespace WalletProject
             services.AddScoped<ITransactionRepository, TransactionRepository>();
             services.AddScoped<UserRepository>();
             services.AddScoped<IUserSettingsService, UserSettingsService>();
+            services.AddScoped<ITimezoneService, TimezoneService>();
 
             // Add JWT Authentication
             var secretKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY") ?? "your-super-secret-key-that-should-be-at-least-32-characters-long";

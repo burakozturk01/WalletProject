@@ -2,6 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Src.Entities;
@@ -11,6 +14,7 @@ using Src.Shared.DTO;
 using Src.Shared.Repository;
 using Src.Database;
 using Src.Repositories;
+using Src.Services;
 
 namespace Src.Controllers
 {
@@ -64,10 +68,33 @@ namespace Src.Controllers
     public class UserController : AppController<User, UserReadDTO>
     {
         private readonly AppDbContext _context;
+        private readonly ITimezoneService _timezoneService;
 
-        public UserController(IRepository<User, UserReadDTO> repository, AppDbContext context) : base(repository)
+        public UserController(IRepository<User, UserReadDTO> repository, AppDbContext context, ITimezoneService timezoneService) : base(repository)
         {
             _context = context;
+            _timezoneService = timezoneService;
+        }
+
+        private Guid? GetCurrentUserId()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+            {
+                return null;
+            }
+            return userId;
+        }
+
+        private async Task<UserReadDTO> ConvertToUserTimezone(UserReadDTO dto, Guid userId)
+        {
+            dto.CreatedAt = await _timezoneService.ConvertToUserTimezoneAsync(userId, dto.CreatedAt);
+            dto.UpdatedAt = await _timezoneService.ConvertToUserTimezoneAsync(userId, dto.UpdatedAt);
+            if (dto.DeletedAt.HasValue)
+            {
+                dto.DeletedAt = await _timezoneService.ConvertToUserTimezoneAsync(userId, dto.DeletedAt.Value);
+            }
+            return dto;
         }
 
         [HttpGet]
@@ -280,7 +307,7 @@ namespace Src.Controllers
                 return BadRequest($"User cannot be deleted. All accounts must have zero balance. Current total balance: {totalBalance:C}");
 
             var accountRepository = new AccountRepository(_context);
-            var accountController = new AccountController(accountRepository, _context);
+            var accountController = new AccountController(accountRepository, _context, _timezoneService);
             var accountDeletionResult = accountController.DeleteAllAccountsForUser(id);
             
             if (!accountDeletionResult.Success)

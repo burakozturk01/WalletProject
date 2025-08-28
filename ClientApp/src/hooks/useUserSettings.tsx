@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { api, UserSettings, SettingUpdateRequest } from '../services/api';
 import { SettingsRegistry } from '../utils/settingsRegistry';
+import { setGlobalSettingsCache } from '../utils/timezone';
 
 export interface UseUserSettingsReturn {
   settings: Record<string, any>;
@@ -69,6 +70,11 @@ export function useUserSettings(): UseUserSettingsReturn {
   useEffect(() => {
     loadSettings();
   }, [loadSettings]);
+
+  // Sync settings with global cache whenever they change
+  useEffect(() => {
+    setGlobalSettingsCache(settingsWithDefaults);
+  }, [settingsWithDefaults]);
 
   // Update a single setting
   const updateSetting = useCallback(async (key: string, value: any) => {

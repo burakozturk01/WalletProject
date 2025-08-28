@@ -3,11 +3,14 @@ import { ArrowUpRight, ArrowDownLeft, ArrowRight, Filter, Calendar, Search, Cloc
 import { Card, Button, Dropdown } from '../../shared/ui';
 import { useAuth } from '../../../../hooks/useAuth';
 import { useUserData } from '../../../../hooks/useUserData';
+import { useTimezone } from '../../../../hooks/useTimezone';
 import { api, Transaction } from '../../../../services/api';
+import { convertToUserTimezone } from '../../../../utils/timezone';
 
 export function TransactionsPage() {
   const { user } = useAuth();
   const { accounts } = useUserData(user?.id);
+  const { formatDate, formatTime, formatDateTime } = useTimezone();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [allAccounts, setAllAccounts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -34,7 +37,8 @@ export function TransactionsPage() {
   ];
 
   const getDateFilterCutoff = (interval: string): Date | null => {
-    const now = new Date();
+    // Use timezone-aware current time for filtering
+    const now = convertToUserTimezone(new Date());
     switch (interval) {
       case 'day':
         return new Date(now.getTime() - 24 * 60 * 60 * 1000);
@@ -382,11 +386,11 @@ export function TransactionsPage() {
                         <div className="flex items-center space-x-4 mt-2 text-xs text-gray-500">
                           <span className="flex items-center">
                             <Calendar size={12} className="mr-1" />
-                            {new Date(transaction.timestamp).toLocaleDateString()}
+                            {formatDate(transaction.timestamp)}
                           </span>
                           <span className="flex items-center">
                             <Clock size={12} className="mr-1" />
-                            {new Date(transaction.timestamp).toLocaleTimeString()}
+                            {formatTime(transaction.timestamp)}
                           </span>
                           <span className="font-mono">
                             ID: {transaction.id.substring(0, 8)}...
@@ -465,7 +469,7 @@ export function TransactionsPage() {
                             <div className="flex justify-between">
                               <span className="text-gray-600">Transaction Time:</span>
                               <span className="text-gray-900">
-                                {new Date(transaction.timestamp).toLocaleString()}
+                                {formatDateTime(transaction.timestamp)}
                               </span>
                             </div>
                           </div>

@@ -124,7 +124,7 @@ export const SETTINGS_REGISTRY: SettingDefinition[] = [
     description: 'Your local timezone for displaying dates and times',
     type: 'select',
     category: 'general',
-    defaultValue: 'UTC',
+    defaultValue: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
     options: TIMEZONE_OPTIONS,
     validation: { required: true }
   },

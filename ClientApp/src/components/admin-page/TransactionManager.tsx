@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Transaction, Account, User } from './AdminPage';
+import { useTimezone } from '../../hooks/useTimezone';
 
 interface TransactionManagerProps {
   transactions: Transaction[];
@@ -9,6 +10,7 @@ interface TransactionManagerProps {
 }
 
 export function TransactionManager({ transactions, accounts, users, onRefresh }: TransactionManagerProps) {
+  const { formatDate } = useTimezone();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [formData, setFormData] = useState({
     sourceType: 0, 
@@ -508,7 +510,7 @@ export function TransactionManager({ transactions, accounts, users, onRefresh }:
                     {transaction.description}
                   </td>
                   <td style={{ padding: '12px', border: '1px solid #dee2e6' }}>
-                    {new Date(transaction.timestamp).toLocaleDateString()}
+                    {formatDate(transaction.timestamp)}
                   </td>
                 </tr>
               ))

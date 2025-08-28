@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { api, Transaction, User, Account } from '../services/api';
+import { convertToUserTimezone, getUserTimezone } from '../utils/timezone';
 
 export interface Activity {
   id: string;
@@ -28,7 +29,8 @@ export function useActivities(userId?: string, timeFilter: string = 'week'): Use
   const [error, setError] = useState<string | null>(null);
 
   const getTimeFilterDate = (filter: string): Date => {
-    const now = new Date();
+    // Use timezone-aware current time for filtering
+    const now = convertToUserTimezone(new Date());
     switch (filter) {
       case 'hour':
         return new Date(now.getTime() - 60 * 60 * 1000);
@@ -55,23 +57,26 @@ export function useActivities(userId?: string, timeFilter: string = 'week'): Use
     let priority: Activity['priority'] = 'medium';
 
     // Determine transaction type based on source and destination
-    if (transaction.sourceType === 0 && transaction.destinationType === 1) {
-      // External to Account = Deposit
+    // SourceType: ACCOUNT (0), IBAN (1), SYSTEM (2)
+    // DestinationType: ACCOUNT (0), IBAN (1), SPEND (2)
+    
+    if ((transaction.sourceType === 1 || transaction.sourceType === 2) && transaction.destinationType === 0) {
+      // External (IBAN/SYSTEM) to Account = Deposit
       type = 'deposit';
       title = 'Money Deposited';
       color = 'text-green-600';
       icon = 'TrendingUp';
       priority = 'high';
       description = `Deposited $${transaction.amount.toLocaleString()} ${transaction.description ? `- ${transaction.description}` : ''}`;
-    } else if (transaction.sourceType === 1 && transaction.destinationType === 0) {
-      // Account to External = Withdrawal
+    } else if (transaction.sourceType === 0 && (transaction.destinationType === 1 || transaction.destinationType === 2)) {
+      // Account to External (IBAN/SPEND) = Withdrawal
       type = 'withdrawal';
       title = 'Money Withdrawn';
       color = 'text-red-600';
       icon = 'TrendingDown';
       priority = 'high';
       description = `Withdrew $${transaction.amount.toLocaleString()} ${transaction.description ? `- ${transaction.description}` : ''}`;
-    } else if (transaction.sourceType === 1 && transaction.destinationType === 1) {
+    } else if (transaction.sourceType === 0 && transaction.destinationType === 0) {
       // Account to Account = Transfer
       type = 'transfer';
       title = 'Money Transferred';
@@ -158,10 +163,9 @@ export function useActivities(userId?: string, timeFilter: string = 'week'): Use
           const transactionResponses = await Promise.all(transactionPromises);
           const allTransactions = transactionResponses.flatMap(response => response.data);
           
-          // Remove duplicates and filter by date
           const uniqueTransactions = allTransactions.filter((transaction, index, self) => 
             index === self.findIndex(t => t.id === transaction.id) &&
-            new Date(transaction.timestamp) >= filterDate
+            convertToUserTimezone(new Date(transaction.timestamp)) >= filterDate
           );
           
           const transactionActivities = uniqueTransactions.map(formatTransactionActivity);
@@ -175,7 +179,7 @@ export function useActivities(userId?: string, timeFilter: string = 'week'): Use
       if (userId) {
         try {
           const userResponse = await api.user.getUser(userId);
-          if (new Date(userResponse.createdAt) >= filterDate) {
+          if (convertToUserTimezone(new Date(userResponse.createdAt)) >= filterDate) {
             allActivities.push(formatUserActivity(userResponse));
           }
         } catch (err) {
@@ -186,20 +190,20 @@ export function useActivities(userId?: string, timeFilter: string = 'week'): Use
         try {
           const accountsResponse = await api.account.getAccountsByUser(userId, { limit: 100 });
           const filteredAccounts = accountsResponse.data.filter(a => 
-            new Date(a.createdAt) >= filterDate || 
-            (a.deletedAt && new Date(a.deletedAt) >= filterDate)
+            convertToUserTimezone(new Date(a.createdAt)) >= filterDate || 
+            (a.deletedAt && convertToUserTimezone(new Date(a.deletedAt)) >= filterDate)
           );
 
           const accountActivities = filteredAccounts.flatMap(account => {
             const activities: Activity[] = [];
             
             // Account creation
-            if (new Date(account.createdAt) >= filterDate) {
+            if (convertToUserTimezone(new Date(account.createdAt)) >= filterDate) {
               activities.push(formatAccountActivity(account, false));
             }
             
             // Account deletion
-            if (account.deletedAt && new Date(account.deletedAt) >= filterDate) {
+            if (account.deletedAt && convertToUserTimezone(new Date(account.deletedAt)) >= filterDate) {
               activities.push(formatAccountActivity(account, true));
             }
 

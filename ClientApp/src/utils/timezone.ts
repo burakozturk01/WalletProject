@@ -8,25 +8,23 @@ export interface DateFormatOptions {
   showDate?: boolean;
 }
 
+// Global settings cache to avoid circular dependencies
+let globalSettingsCache: Record<string, any> = {};
+
+export function setGlobalSettingsCache(settings: Record<string, any>) {
+  globalSettingsCache = settings;
+}
+
 export function getUserTimezone(): string {
-  // TODO: In future implementation, get from user settings
-  // const { getSetting } = useUserSettings();
-  // return getSetting('timezone', 'UTC');
-  return 'UTC';
+  return globalSettingsCache['timezone'] || 'UTC';
 }
 
 export function getUserDateFormat(): string {
-  // TODO: In future implementation, get from user settings
-  // const { getSetting } = useUserSettings();
-  // return getSetting('dateFormat', 'MM/DD/YYYY');
-  return 'MM/DD/YYYY';
+  return globalSettingsCache['dateFormat'] || 'MM/DD/YYYY';
 }
 
 export function getUserTimeFormat(): string {
-  // TODO: In future implementation, get from user settings
-  // const { getSetting } = useUserSettings();
-  // return getSetting('timeFormat', '12');
-  return '12';
+  return globalSettingsCache['timeFormat'] || '12';
 }
 
 export function dateFormatToIntlOptions(format: string): Intl.DateTimeFormatOptions {
@@ -129,7 +127,12 @@ export function formatAccountDate(date: Date | string): string {
 export function formatActivityDate(date: Date | string): string {
   const now = new Date();
   const dateObj = typeof date === 'string' ? new Date(date) : date;
-  const diffInHours = (now.getTime() - dateObj.getTime()) / (1000 * 60 * 60);
+  
+  // Convert both dates to user timezone for proper comparison
+  const userNow = convertToUserTimezone(now);
+  const userDate = convertToUserTimezone(dateObj);
+  
+  const diffInHours = (userNow.getTime() - userDate.getTime()) / (1000 * 60 * 60);
 
   if (diffInHours < 24) {
     if (diffInHours < 1) {
@@ -146,7 +149,12 @@ export function formatActivityDate(date: Date | string): string {
 export function getRelativeTime(date: Date | string): string {
   const now = new Date();
   const dateObj = typeof date === 'string' ? new Date(date) : date;
-  const diffInMs = now.getTime() - dateObj.getTime();
+  
+  // Convert both dates to user timezone for proper comparison
+  const userNow = convertToUserTimezone(now);
+  const userDate = convertToUserTimezone(dateObj);
+  
+  const diffInMs = userNow.getTime() - userDate.getTime();
   
   const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
   const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
@@ -173,9 +181,13 @@ export function isToday(date: Date | string): boolean {
   const dateObj = typeof date === 'string' ? new Date(date) : date;
   const today = new Date();
   
-  return dateObj.getDate() === today.getDate() &&
-         dateObj.getMonth() === today.getMonth() &&
-         dateObj.getFullYear() === today.getFullYear();
+  // Convert both dates to user timezone for proper comparison
+  const userToday = convertToUserTimezone(today);
+  const userDate = convertToUserTimezone(dateObj);
+  
+  return userDate.getDate() === userToday.getDate() &&
+         userDate.getMonth() === userToday.getMonth() &&
+         userDate.getFullYear() === userToday.getFullYear();
 }
 
 export function isYesterday(date: Date | string): boolean {
@@ -183,9 +195,13 @@ export function isYesterday(date: Date | string): boolean {
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 1);
   
-  return dateObj.getDate() === yesterday.getDate() &&
-         dateObj.getMonth() === yesterday.getMonth() &&
-         dateObj.getFullYear() === yesterday.getFullYear();
+  // Convert both dates to user timezone for proper comparison
+  const userYesterday = convertToUserTimezone(yesterday);
+  const userDate = convertToUserTimezone(dateObj);
+  
+  return userDate.getDate() === userYesterday.getDate() &&
+         userDate.getMonth() === userYesterday.getMonth() &&
+         userDate.getFullYear() === userYesterday.getFullYear();
 }
 
 export function getFriendlyDate(date: Date | string): string {
@@ -198,37 +214,39 @@ export function convertToUserTimezone(date: Date | string): Date {
   const dateObj = typeof date === 'string' ? new Date(date) : new Date(date);
   const timezone = getUserTimezone();
   
-  const options: Intl.DateTimeFormatOptions = {
-    timeZone: timezone,
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: false
-  };
+  // If timezone is UTC, return the original date
+  if (timezone === 'UTC') {
+    return dateObj;
+  }
   
-  const formatter = new Intl.DateTimeFormat('en-US', options);
-  const parts = formatter.formatToParts(dateObj);
-  
-  const dateParts: Record<string, string> = {};
-  parts.forEach(part => {
-    if (part.type !== 'literal') {
-      dateParts[part.type] = part.value;
-    }
-  });
-  
-  const localDate = new Date(
-    parseInt(dateParts.year!),
-    parseInt(dateParts.month!) - 1,
-    parseInt(dateParts.day!),
-    parseInt(dateParts.hour!),
-    parseInt(dateParts.minute!),
-    parseInt(dateParts.second!)
-  );
-  
-  return localDate;
+  try {
+    // The key insight: we need to return a Date object that, when used in calculations,
+    // represents the time as it appears in the user's timezone
+    
+    // Get what the time looks like in the user's timezone
+    const formatter = new Intl.DateTimeFormat('sv-SE', { // sv-SE gives us YYYY-MM-DD HH:mm:ss format
+      timeZone: timezone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    });
+    
+    const timeInUserTz = formatter.format(dateObj);
+    
+    // Create a new Date object from this time string
+    // This creates a Date that represents the timezone-converted time as local time
+    const convertedDate = new Date(timeInUserTz.replace(' ', 'T'));
+    
+    return convertedDate;
+    
+  } catch (error) {
+    console.warn('Error converting timezone:', error);
+    return dateObj;
+  }
 }
 
 export function getTimezoneOptions() {

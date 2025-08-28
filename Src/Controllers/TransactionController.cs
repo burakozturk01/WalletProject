@@ -2,6 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Src.Entities;
@@ -10,6 +13,7 @@ using Src.Shared.DTO;
 using Src.Shared.Repository;
 using Src.Database;
 using Src.Repositories;
+using Src.Services;
 
 namespace Src.Controllers
 {
@@ -74,11 +78,31 @@ namespace Src.Controllers
     {
         private readonly AppDbContext _context;
         private readonly ITransactionRepository _repository;
+        private readonly ITimezoneService _timezoneService;
 
-        public TransactionController(ITransactionRepository repository, AppDbContext context)
+        public TransactionController(ITransactionRepository repository, AppDbContext context, ITimezoneService timezoneService)
         {
             _repository = repository;
             _context = context;
+            _timezoneService = timezoneService;
+        }
+
+        private Guid? GetCurrentUserId()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+            {
+                return null;
+            }
+            return userId;
+        }
+
+        private async Task<TransactionReadDTO> ConvertToUserTimezone(TransactionReadDTO dto, Guid userId)
+        {
+            dto.Timestamp = await _timezoneService.ConvertToUserTimezoneAsync(userId, dto.Timestamp);
+            dto.CreatedAt = await _timezoneService.ConvertToUserTimezoneAsync(userId, dto.CreatedAt);
+            dto.UpdatedAt = await _timezoneService.ConvertToUserTimezoneAsync(userId, dto.UpdatedAt);
+            return dto;
         }
 
         [HttpGet]
@@ -112,8 +136,13 @@ namespace Src.Controllers
         }
 
         [HttpGet("account/{accountId}")]
-        public ActionResult<ListReadDTO<TransactionReadDTO>> GetTransactionsByAccount(Guid accountId, [FromQuery] PaginateDTO paginate)
+        [Authorize]
+        public async Task<ActionResult<ListReadDTO<TransactionReadDTO>>> GetTransactionsByAccount(Guid accountId, [FromQuery] PaginateDTO paginate)
         {
+            var userId = GetCurrentUserId();
+            if (userId == null)
+                return Unauthorized();
+
             var transactions = _repository.Find(t => t.SourceAccountId == accountId || t.DestinationAccountId == accountId, out int totalCount);
             
             if (paginate.Skip > 0)
@@ -124,11 +153,66 @@ namespace Src.Controllers
 
             var transactionDtos = transactions.Select(t => _repository.ParseToRead(t)).ToList();
 
+            // Convert dates to user's timezone
+            var convertedDtos = new List<TransactionReadDTO>();
+            foreach (var dto in transactionDtos)
+                convertedDtos.Add(await ConvertToUserTimezone(dto, userId.Value));
+
             return Ok(new ListReadDTO<TransactionReadDTO>
             {
-                Data = transactionDtos,
+                Data = convertedDtos,
                 Total = totalCount
             });
+        }
+
+        [HttpGet("user/account/{accountId}")]
+        [Authorize]
+        public async Task<ActionResult<ListReadDTO<TransactionReadDTO>>> GetUserTransactionsByAccount(Guid accountId, [FromQuery] PaginateDTO paginate)
+        {
+            var userId = GetCurrentUserId();
+            if (userId == null)
+                return Unauthorized();
+
+            var transactions = _repository.Find(t => t.SourceAccountId == accountId || t.DestinationAccountId == accountId, out int totalCount);
+            
+            if (paginate.Skip > 0)
+                transactions = transactions.Skip(paginate.Skip);
+            
+            if (paginate.Limit > 0)
+                transactions = transactions.Take(paginate.Limit);
+
+            var transactionDtos = transactions.Select(t => _repository.ParseToRead(t)).ToList();
+
+            // Convert dates to user's timezone
+            var convertedDtos = new List<TransactionReadDTO>();
+            foreach (var dto in transactionDtos)
+            {
+                convertedDtos.Add(await ConvertToUserTimezone(dto, userId.Value));
+            }
+
+            return Ok(new ListReadDTO<TransactionReadDTO>
+            {
+                Data = convertedDtos,
+                Total = totalCount
+            });
+        }
+
+        [HttpGet("user/{id}")]
+        [Authorize]
+        public async Task<ActionResult<TransactionReadDTO>> GetUserTransaction(Guid id)
+        {
+            var userId = GetCurrentUserId();
+            if (userId == null)
+                return Unauthorized();
+
+            var transaction = _repository.Find(t => t.Id == id);
+            if (transaction == null)
+                return NotFound();
+
+            var dto = _repository.ParseToRead(transaction);
+            var convertedDto = await ConvertToUserTimezone(dto, userId.Value);
+
+            return Ok(convertedDto);
         }
 
         [HttpPost]

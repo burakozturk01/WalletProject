@@ -2,6 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Src.Entities;
@@ -11,6 +14,7 @@ using Src.Shared.DTO;
 using Src.Shared.Repository;
 using Src.Database;
 using Src.Repositories;
+using Src.Services;
 
 namespace Src.Controllers
 {
@@ -24,7 +28,7 @@ namespace Src.Controllers
         public bool IsDeleted { get; set; }
         public DateTime? DeletedAt { get; set; }
         
-                public CoreDetailsReadDTO? CoreDetails { get; set; }
+        public CoreDetailsReadDTO? CoreDetails { get; set; }
         public ActiveAccountReadDTO? ActiveAccount { get; set; }
         public SpendingLimitReadDTO? SpendingLimit { get; set; }
         public SavingGoalReadDTO? SavingGoal { get; set; }
@@ -63,10 +67,10 @@ namespace Src.Controllers
         
         public bool IsMain { get; set; }
 
-                [Required]
+        [Required]
         public CoreDetailsCreateDTO CoreDetails { get; set; } = new();
 
-                public ActiveAccountCreateDTO? ActiveAccount { get; set; }
+        public ActiveAccountCreateDTO? ActiveAccount { get; set; }
         public SpendingLimitCreateDTO? SpendingLimit { get; set; }
         public SavingGoalCreateDTO? SavingGoal { get; set; }
     }
@@ -116,10 +120,41 @@ namespace Src.Controllers
     public class AccountController : AppController<Account, AccountReadDTO>
     {
         private readonly AppDbContext _context;
+        private readonly ITimezoneService _timezoneService;
 
-        public AccountController(IRepository<Account, AccountReadDTO> repository, AppDbContext context) : base(repository)
+        public AccountController(IRepository<Account, AccountReadDTO> repository, AppDbContext context, ITimezoneService timezoneService) : base(repository)
         {
             _context = context;
+            _timezoneService = timezoneService;
+        }
+
+        private Guid? GetCurrentUserId()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+            {
+                return null;
+            }
+            return userId;
+        }
+
+        private async Task<AccountReadDTO> ConvertToUserTimezone(AccountReadDTO dto, Guid userId)
+        {
+            dto.CreatedAt = await _timezoneService.ConvertToUserTimezoneAsync(userId, dto.CreatedAt);
+            dto.UpdatedAt = await _timezoneService.ConvertToUserTimezoneAsync(userId, dto.UpdatedAt);
+            if (dto.DeletedAt.HasValue)
+            {
+                dto.DeletedAt = await _timezoneService.ConvertToUserTimezoneAsync(userId, dto.DeletedAt.Value);
+            }
+            if (dto.ActiveAccount != null)
+            {
+                dto.ActiveAccount.ActivatedAt = await _timezoneService.ConvertToUserTimezoneAsync(userId, dto.ActiveAccount.ActivatedAt);
+            }
+            if (dto.SpendingLimit != null)
+            {
+                dto.SpendingLimit.PeriodStartDate = await _timezoneService.ConvertToUserTimezoneAsync(userId, dto.SpendingLimit.PeriodStartDate);
+            }
+            return dto;
         }
 
         [HttpGet]
@@ -224,13 +259,13 @@ namespace Src.Controllers
 
             try
             {
-                                var userExists = _context.Users.Any(u => u.Id == createDto.UserId && !u.IsDeleted);
+                var userExists = _context.Users.Any(u => u.Id == createDto.UserId && !u.IsDeleted);
                 if (!userExists)
                 {
                     return BadRequest("Invalid user ID. The specified user does not exist.");
                 }
 
-                                if (createDto.IsMain)
+                if (createDto.IsMain)
                 {
                     var existingMainAccount = _repository.Find(a => a.UserId == createDto.UserId && a.IsMain);
                     if (existingMainAccount != null)
@@ -240,73 +275,71 @@ namespace Src.Controllers
                 }
 
                 var account = new Account
-            {
-                Id = Guid.NewGuid(),
-                UserId = createDto.UserId,
-                IsMain = createDto.IsMain,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
-                IsDeleted = false
-            };
-
-                        account.CoreDetails = new CoreDetailsComponent
-            {
-                Id = Guid.NewGuid(),
-                AccountId = account.Id,
-                Name = createDto.CoreDetails.Name,
-                Balance = createDto.CoreDetails.Balance,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
-                IsDeleted = false
-            };
-
-                        if (createDto.ActiveAccount != null)
-            {
-                account.ActiveAccount = new ActiveAccountComponent
                 {
-                    AccountId = account.Id,
-                    IBAN = createDto.ActiveAccount.IBAN,
-                    ActivatedAt = DateTime.UtcNow,
+                    Id = Guid.NewGuid(),
+                    UserId = createDto.UserId,
+                    IsMain = createDto.IsMain,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow,
                     IsDeleted = false
                 };
-            }
 
-            if (createDto.SpendingLimit != null)
-            {
-                account.SpendingLimit = new SpendingLimitComponent
+                account.CoreDetails = new CoreDetailsComponent
                 {
+                    Id = Guid.NewGuid(),
                     AccountId = account.Id,
-                    LimitAmount = createDto.SpendingLimit.LimitAmount,
-                    Timeframe = createDto.SpendingLimit.Timeframe,
-                    CurrentSpending = createDto.SpendingLimit.CurrentSpending,
-                    PeriodStartDate = createDto.SpendingLimit.PeriodStartDate ?? DateTime.UtcNow,
+                    Name = createDto.CoreDetails.Name,
+                    Balance = createDto.CoreDetails.Balance,
                     CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
+                    UpdatedAt = DateTime.UtcNow,
+                    IsDeleted = false
                 };
-            }
 
-            if (createDto.SavingGoal != null)
-            {
-                account.SavingGoal = new SavingGoalComponent
+                if (createDto.ActiveAccount != null)
                 {
-                    AccountId = account.Id,
-                    GoalName = createDto.SavingGoal.GoalName,
-                    TargetAmount = createDto.SavingGoal.TargetAmount,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
-                };
-            }
+                    account.ActiveAccount = new ActiveAccountComponent
+                    {
+                        AccountId = account.Id,
+                        IBAN = createDto.ActiveAccount.IBAN,
+                        ActivatedAt = DateTime.UtcNow,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow,
+                        IsDeleted = false
+                    };
+                }
+
+                if (createDto.SpendingLimit != null)
+                {
+                    account.SpendingLimit = new SpendingLimitComponent
+                    {
+                        AccountId = account.Id,
+                        LimitAmount = createDto.SpendingLimit.LimitAmount,
+                        Timeframe = createDto.SpendingLimit.Timeframe,
+                        CurrentSpending = createDto.SpendingLimit.CurrentSpending,
+                        PeriodStartDate = createDto.SpendingLimit.PeriodStartDate ?? DateTime.UtcNow,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    };
+                }
+
+                if (createDto.SavingGoal != null)
+                {
+                    account.SavingGoal = new SavingGoalComponent
+                    {
+                        AccountId = account.Id,
+                        GoalName = createDto.SavingGoal.GoalName,
+                        TargetAmount = createDto.SavingGoal.TargetAmount,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    };
+                }
 
                 return CreateEntity(account);
             }
             catch (Exception ex)
             {
                 if (ex.Message.Contains("FOREIGN KEY constraint failed") || ex.InnerException?.Message.Contains("FOREIGN KEY constraint failed") == true)
-                {
                     return BadRequest("Invalid user ID. The specified user does not exist.");
-                }
                 
                 return BadRequest($"An error occurred while creating the account: {ex.Message}");
             }
@@ -372,14 +405,10 @@ namespace Src.Controllers
                 }
 
                 if (account.SpendingLimit != null)
-                {
                     _context.Remove(account.SpendingLimit);
-                }
 
                 if (account.SavingGoal != null)
-                {
                     _context.Remove(account.SavingGoal);
-                }
 
                 account.IsDeleted = true;
                 account.DeletedAt = DateTime.UtcNow;
