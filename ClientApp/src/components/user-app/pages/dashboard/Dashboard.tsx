@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Plus, ArrowUpRight, ArrowRight, Clock, TrendingUp, TrendingDown, UserPlus, Trash2, Filter, RefreshCw } from 'lucide-react';
-import { Card, Button, Dropdown } from '../../shared/ui';
+import { Card, Button, Dropdown, QuickActions } from '../../shared/ui';
 import { Sparkline } from '../../shared/charts';
 import { useAuth } from '../../../../hooks/useAuth';
 import { useUserData } from '../../../../hooks/useUserData';
@@ -23,7 +23,7 @@ export function Dashboard({
   className = '' 
 }: DashboardProps) {
   const { user } = useAuth();
-  const { totalBalance, accounts, isLoading, error } = useUserData(user?.id);
+  const { totalBalance, accounts, isLoading, error, refreshData } = useUserData(user?.id);
   const { formatActivityDate } = useTimezone();
   const [timeFilter, setTimeFilter] = useState('week');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
@@ -64,12 +64,10 @@ export function Dashboard({
     { value: 'system', label: 'System' }
   ];
 
-  // Filter activities by category
   const filteredActivities = categoryFilter === 'all' 
     ? activities 
     : activities.filter(activity => activity.category === categoryFilter);
 
-  // Group activities by priority for better display
   const groupedActivities = {
     high: filteredActivities.filter(a => a.priority === 'high'),
     medium: filteredActivities.filter(a => a.priority === 'medium'),
@@ -174,33 +172,10 @@ export function Dashboard({
         </Card>
         
         <Card title="Quick Actions">
-          <div className="grid grid-cols-3 gap-3">
-            <Button 
-              variant="success" 
-              icon={<Plus size={16} />}
-              onClick={onDeposit}
-            >
-              Deposit
-            </Button>
-            <Button 
-              variant="primary" 
-              icon={<ArrowUpRight size={16} />}
-              onClick={onWithdraw}
-            >
-              Withdraw
-            </Button>
-            <Button 
-              variant="teal" 
-              icon={<ArrowRight size={16} />}
-              onClick={onTransfer}
-            >
-              Transfer
-            </Button>
-          </div>
+          <QuickActions refreshActivities={refreshActivities} refreshUserData={refreshData} />
         </Card>
       </div>
 
-      {/* Activity Statistics */}
       <div className="grid grid-cols-4 gap-4">
         <Card title="Deposits" className="text-center">
           <div className={`text-2xl font-bold ${themeClasses.amount.positive}`}>{stats.deposits}</div>

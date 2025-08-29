@@ -15,3 +15,6 @@ export type { ProgressBarProps } from './ProgressBar';
 
 export { Dropdown } from './Dropdown';
 export type { DropdownProps, DropdownOption } from './Dropdown';
+
+export { QuickActions } from './QuickActions';
+export type { QuickActionsProps } from './QuickActions';
