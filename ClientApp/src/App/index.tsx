@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from '../hooks/useAuth';
+import { ThemeProvider } from '../contexts/ThemeContext';
 import { ProtectedRoute } from '../components/user-app/routing/ProtectedRoute';
 import { AuthRedirect } from '../components/user-app/routing/AuthRedirect';
 import { MainLayout } from '../components/user-app/layout/MainLayout';
@@ -19,9 +20,9 @@ type AppProps = {
 export function App({}: AppProps) {
   return (
     <AuthProvider>
-      <Router>
+      <ThemeProvider>
+        <Router>
         <Routes>
-          {/* Auth routes - redirect to dashboard if already authenticated */}
           <Route path="/login" element={
             <AuthRedirect>
               <LoginPage />
@@ -33,10 +34,8 @@ export function App({}: AppProps) {
             </AuthRedirect>
           } />
           
-          {/* Admin route - no authentication required for development */}
           <Route path="/admin" element={<AdminPage />} />
           
-          {/* Protected routes */}
           <Route path="/" element={
             <ProtectedRoute>
               <MainLayout />
@@ -50,10 +49,10 @@ export function App({}: AppProps) {
             <Route path="settings" element={<SettingsPage />} />
           </Route>
           
-          {/* Catch all route - redirect to dashboard */}
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
-      </Router>
+        </Router>
+      </ThemeProvider>
     </AuthProvider>
   );
 }

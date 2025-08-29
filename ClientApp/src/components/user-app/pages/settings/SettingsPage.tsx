@@ -3,6 +3,7 @@ import { useUserSettings } from '../../../../hooks/useUserSettings';
 import { SETTING_CATEGORIES, SettingsRegistry, SettingDefinition } from '../../../../utils/settingsRegistry';
 import { Button } from '../../shared/ui/Button';
 import { Toggle } from '../../shared/ui/Toggle';
+import { useThemeClasses, useTheme, Theme } from '../../../../contexts/ThemeContext';
 
 interface SettingFieldProps {
   setting: SettingDefinition;
@@ -12,6 +13,8 @@ interface SettingFieldProps {
 }
 
 function SettingField({ setting, value, onChange, disabled }: SettingFieldProps) {
+  const themeClasses = useThemeClasses();
+
   const handleChange = (newValue: any) => {
     if (!disabled) {
       onChange(newValue);
@@ -25,7 +28,7 @@ function SettingField({ setting, value, onChange, disabled }: SettingFieldProps)
           value={value || setting.defaultValue}
           onChange={(e) => handleChange(e.target.value)}
           disabled={disabled}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+          className={`mt-1 block w-full rounded-md shadow-sm ${disabled ? themeClasses.input.disabled : themeClasses.input.base}`}
         >
           {setting.options?.map((option) => (
             <option key={option.value} value={option.value}>
@@ -55,7 +58,7 @@ function SettingField({ setting, value, onChange, disabled }: SettingFieldProps)
           disabled={disabled}
           min={setting.validation?.min}
           max={setting.validation?.max}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+          className={`mt-1 block w-full rounded-md shadow-sm ${disabled ? themeClasses.input.disabled : themeClasses.input.base}`}
         />
       );
 
@@ -67,7 +70,7 @@ function SettingField({ setting, value, onChange, disabled }: SettingFieldProps)
           onChange={(e) => handleChange(e.target.value)}
           disabled={disabled}
           pattern={setting.validation?.pattern}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+          className={`mt-1 block w-full rounded-md shadow-sm ${disabled ? themeClasses.input.disabled : themeClasses.input.base}`}
         />
       );
 
@@ -78,13 +81,13 @@ function SettingField({ setting, value, onChange, disabled }: SettingFieldProps)
           value={value ?? setting.defaultValue}
           onChange={(e) => handleChange(e.target.value)}
           disabled={disabled}
-          className="mt-1 block w-16 h-10 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+          className={`mt-1 block w-16 h-10 rounded-md shadow-sm ${disabled ? themeClasses.input.disabled : themeClasses.input.base}`}
         />
       );
 
     default:
       return (
-        <div className="mt-1 text-gray-500 italic">
+        <div className={`mt-1 italic ${themeClasses.text.muted}`}>
           Unsupported setting type: {setting.type}
         </div>
       );
@@ -100,24 +103,27 @@ interface SettingItemProps {
 }
 
 function SettingItem({ setting, value, onChange, disabled, visible = true }: SettingItemProps) {
+  const themeClasses = useThemeClasses();
+  const { resolvedTheme } = useTheme();
+
   if (!visible) return null;
 
   return (
-    <div className="py-4 border-b border-gray-200 last:border-b-0">
+    <div className={`py-4 border-b last:border-b-0 ${themeClasses.border.primary}`}>
       <div className="flex items-start justify-between">
         <div className="flex-1 min-w-0 pr-4">
-          <label className="block text-sm font-medium text-gray-900">
+          <label className={`block text-sm font-medium ${themeClasses.text.primary}`}>
             {setting.label}
             {setting.validation?.required && (
               <span className="text-red-500 ml-1">*</span>
             )}
           </label>
-          <p className="mt-1 text-sm text-gray-600">{setting.description}</p>
+          <p className={`mt-1 text-sm ${themeClasses.text.secondary}`}>{setting.description}</p>
           {setting.options && setting.type === 'select' && (
             <div className="mt-2">
               {setting.options.map((option) => (
                 option.value === value && option.description && (
-                  <p key={option.value} className="text-xs text-gray-500 italic">
+                  <p key={option.value} className={`text-xs italic ${themeClasses.text.muted}`}>
                     {option.description}
                   </p>
                 )
@@ -147,21 +153,22 @@ interface SettingsCategoryProps {
 }
 
 function SettingsCategory({ categoryKey, settings, onSettingChange, isSettingVisible, disabled }: SettingsCategoryProps) {
+  const themeClasses = useThemeClasses();
   const category = SettingsRegistry.getCategory(categoryKey);
   const categorySettings = SettingsRegistry.getVisibleSettingsForCategory(categoryKey, settings);
 
   if (!category || categorySettings.length === 0) return null;
 
   return (
-    <div className="bg-white rounded-lg shadow-sm mb-6">
-      <div className="px-6 py-4 border-b border-gray-200">
+    <div className={`rounded-lg mb-6 ${themeClasses.bg.card} ${themeClasses.shadow.sm}`}>
+      <div className={`px-6 py-4 border-b ${themeClasses.border.primary}`}>
         <div className="flex items-center">
           {category.icon && (
             <span className="text-2xl mr-3">{category.icon}</span>
           )}
           <div>
-            <h3 className="text-lg font-medium text-gray-900">{category.label}</h3>
-            <p className="text-sm text-gray-600">{category.description}</p>
+            <h3 className={`text-lg font-medium ${themeClasses.text.primary}`}>{category.label}</h3>
+            <p className={`text-sm ${themeClasses.text.secondary}`}>{category.description}</p>
           </div>
         </div>
       </div>
@@ -182,6 +189,8 @@ function SettingsCategory({ categoryKey, settings, onSettingChange, isSettingVis
 }
 
 export function SettingsPage() {
+  const themeClasses = useThemeClasses();
+  const { setTheme, theme: currentTheme } = useTheme();
   const {
     settings,
     loading,
@@ -222,7 +231,13 @@ export function SettingsPage() {
   const handleSaveSetting = async (key: string, value: any) => {
     try {
       setSaving(true);
-      await updateSetting(key, value);
+      
+      // Use ThemeContext's setTheme for theme changes to get immediate updates
+      if (key === 'theme') {
+        await setTheme(value as Theme);
+      } else {
+        await updateSetting(key, value);
+      }
       
       // Remove from pending changes
       setPendingChanges(prev => {
@@ -265,7 +280,7 @@ export function SettingsPage() {
 
       timeouts[key] = window.setTimeout(() => {
         handleSaveSetting(key, value);
-      }, 1000); // 1 second debounce
+      }, 200); // 1 second debounce
     });
 
     return () => {
@@ -273,19 +288,25 @@ export function SettingsPage() {
     };
   }, [pendingChanges, validationErrors]);
 
-  const currentSettings = { ...settings, ...pendingChanges };
+  // Use current theme from ThemeContext for the theme setting to ensure UI sync
+  const currentSettings = { 
+    ...settings, 
+    ...pendingChanges,
+    // Override theme setting with current theme from ThemeContext
+    theme: pendingChanges.theme ?? currentTheme
+  };
   const hasValidationErrors = Object.keys(validationErrors).length > 0;
   const hasPendingChanges = Object.keys(pendingChanges).length > 0;
 
   if (loading) {
     return (
       <div className="p-6">
-        <div className="bg-white rounded-lg shadow-sm p-6">
+        <div className={`rounded-lg p-6 ${themeClasses.bg.card} ${themeClasses.shadow.sm}`}>
           <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
+            <div className={`h-8 rounded w-1/4 mb-4 ${themeClasses.bg.tertiary}`}></div>
             <div className="space-y-3">
-              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-              <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+              <div className={`h-4 rounded w-3/4 ${themeClasses.bg.tertiary}`}></div>
+              <div className={`h-4 rounded w-1/2 ${themeClasses.bg.tertiary}`}></div>
             </div>
           </div>
         </div>
@@ -296,35 +317,38 @@ export function SettingsPage() {
   return (
     <div className="p-6">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
-        <p className="mt-2 text-gray-600">
+        <h1 className={`text-3xl font-bold ${themeClasses.text.primary}`}>Settings</h1>
+        <p className={`mt-2 ${themeClasses.text.secondary}`}>
           Manage your account preferences and application settings.
+        </p>
+        <p className={`mt-2 ${themeClasses.text.tertiary}`}>
+          Most of the settings are not yet implemented.
         </p>
       </div>
 
       {error && (
-        <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
+        <div className={`mb-6 rounded-lg p-4 ${themeClasses.alert.error}`}>
           <div className="flex">
             <div className="flex-shrink-0">
               <span className="text-red-400">⚠️</span>
             </div>
             <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800">Error loading settings</h3>
-              <p className="mt-1 text-sm text-red-700">{error}</p>
+              <h3 className="text-sm font-medium">Error loading settings</h3>
+              <p className="mt-1 text-sm">{error}</p>
             </div>
           </div>
         </div>
       )}
 
       {hasValidationErrors && (
-        <div className="mb-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+        <div className={`mb-6 rounded-lg p-4 ${themeClasses.alert.warning}`}>
           <div className="flex">
             <div className="flex-shrink-0">
               <span className="text-yellow-400">⚠️</span>
             </div>
             <div className="ml-3">
-              <h3 className="text-sm font-medium text-yellow-800">Validation Errors</h3>
-              <ul className="mt-1 text-sm text-yellow-700 list-disc list-inside">
+              <h3 className="text-sm font-medium">Validation Errors</h3>
+              <ul className="mt-1 text-sm list-disc list-inside">
                 {Object.entries(validationErrors).map(([key, error]) => (
                   <li key={key}>
                     {SettingsRegistry.getSetting(key)?.label || key}: {error}
@@ -337,15 +361,15 @@ export function SettingsPage() {
       )}
 
       {hasPendingChanges && (
-        <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div className={`mb-6 rounded-lg p-4 ${themeClasses.alert.info}`}>
           <div className="flex items-center justify-between">
             <div className="flex">
               <div className="flex-shrink-0">
                 <span className="text-blue-400">💾</span>
               </div>
               <div className="ml-3">
-                <h3 className="text-sm font-medium text-blue-800">Auto-saving changes...</h3>
-                <p className="text-sm text-blue-700">
+                <h3 className="text-sm font-medium">Auto-saving changes...</h3>
+                <p className="text-sm">
                   Your settings will be saved automatically.
                 </p>
               </div>
@@ -372,29 +396,22 @@ export function SettingsPage() {
           ))}
       </div>
 
-      <div className="mt-8 pt-6 border-t border-gray-200">
+      <div className={`mt-8 pt-6 border-t ${themeClasses.border.primary}`}>
         <div className="flex justify-between items-center">
           <div>
-            <h3 className="text-lg font-medium text-gray-900">Reset Settings</h3>
-            <p className="text-sm text-gray-600">
+            <h3 className={`text-lg font-medium ${themeClasses.text.primary}`}>Reset Settings</h3>
+            <p className={`text-sm ${themeClasses.text.secondary}`}>
               Reset all settings to their default values.
             </p>
           </div>
           <Button
             onClick={handleResetToDefaults}
             disabled={saving}
-            className="bg-red-600 hover:bg-red-700 text-white"
+            variant="danger"
           >
             Reset to Defaults
           </Button>
         </div>
-      </div>
-
-      <div className="mt-6 text-xs text-gray-500">
-        <p>
-          💡 <strong>Note:</strong> Settings are stored in your account but do not affect application behavior yet. 
-          This creates the foundation for future implementation.
-        </p>
       </div>
     </div>
   );

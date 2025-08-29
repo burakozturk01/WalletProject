@@ -4,6 +4,7 @@ import { Card, Button, Dropdown } from '../../shared/ui';
 import { useAuth } from '../../../../hooks/useAuth';
 import { useUserData } from '../../../../hooks/useUserData';
 import { useTimezone } from '../../../../hooks/useTimezone';
+import { useThemeClasses } from '../../../../contexts/ThemeContext';
 import { api, Transaction } from '../../../../services/api';
 import { convertToUserTimezone } from '../../../../utils/timezone';
 
@@ -11,6 +12,7 @@ export function TransactionsPage() {
   const { user } = useAuth();
   const { accounts } = useUserData(user?.id);
   const { formatDate, formatTime, formatDateTime } = useTimezone();
+  const themeClasses = useThemeClasses();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [allAccounts, setAllAccounts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -229,8 +231,8 @@ export function TransactionsPage() {
   if (isLoading) {
     return (
       <div className="p-6">
-        <div className="text-center text-gray-500">
-          <RefreshCw size={48} className="mx-auto mb-3 text-gray-300 animate-spin" />
+        <div className={`text-center ${themeClasses.text.secondary}`}>
+          <RefreshCw size={48} className={`mx-auto mb-3 ${themeClasses.text.muted} animate-spin`} />
           <p>Loading transactions...</p>
         </div>
       </div>
@@ -240,7 +242,7 @@ export function TransactionsPage() {
   if (error) {
     return (
       <div className="p-6">
-        <div className="text-center text-red-500">
+        <div className={`text-center ${themeClasses.status.error}`}>
           <p>Error: {error}</p>
           <Button onClick={fetchTransactions} className="mt-4">
             Try Again
@@ -255,8 +257,8 @@ export function TransactionsPage() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Transactions</h1>
-          <p className="text-gray-600 mt-1">
+          <h1 className={`text-3xl font-bold ${themeClasses.text.primary}`}>Transactions</h1>
+          <p className={`${themeClasses.text.secondary} mt-1`}>
             {filteredAndSortedTransactions.length} transaction{filteredAndSortedTransactions.length !== 1 ? 's' : ''} found
           </p>
         </div>
@@ -274,7 +276,7 @@ export function TransactionsPage() {
       <Card title="Filters">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className={`block text-sm font-medium ${themeClasses.text.primary} mb-1`}>
               Account
             </label>
             <Dropdown
@@ -286,7 +288,7 @@ export function TransactionsPage() {
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className={`block text-sm font-medium ${themeClasses.text.primary} mb-1`}>
               Date Range
             </label>
             <Dropdown
@@ -298,23 +300,23 @@ export function TransactionsPage() {
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className={`block text-sm font-medium ${themeClasses.text.primary} mb-1`}>
               Search
             </label>
             <div className="relative">
-              <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <Search size={16} className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${themeClasses.text.tertiary}`} />
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`w-full pl-10 pr-3 py-2 ${themeClasses.input.base} rounded-md focus:outline-none focus:ring-2 ${themeClasses.ring.focus}`}
                 placeholder="Search transactions..."
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className={`block text-sm font-medium ${themeClasses.text.primary} mb-1`}>
               Sort By
             </label>
             <Dropdown
@@ -331,8 +333,8 @@ export function TransactionsPage() {
       <div className="space-y-4">
         {filteredAndSortedTransactions.length === 0 ? (
           <Card>
-            <div className="text-center py-8 text-gray-500">
-              <Clock size={48} className="mx-auto mb-3 text-gray-300" />
+            <div className={`text-center py-8 ${themeClasses.text.secondary}`}>
+              <Clock size={48} className={`mx-auto mb-3 ${themeClasses.text.muted}`} />
               <p className="text-lg font-medium">No transactions found</p>
               <p className="text-sm">
                 {searchTerm || selectedAccount !== 'all' 
@@ -363,27 +365,27 @@ export function TransactionsPage() {
                       
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center space-x-2 mb-1">
-                          <h3 className="text-lg font-semibold text-gray-900 truncate">
+                          <h3 className={`text-lg font-semibold ${themeClasses.text.primary} truncate`}>
                             {transaction.description.length > 50 && !isExpanded 
                               ? `${transaction.description.substring(0, 50)}...` 
                               : transaction.description}
                           </h3>
                           <span className={`px-2 py-1 text-xs font-medium rounded-full ${
                             transactionType.type === 'Incoming' 
-                              ? 'bg-green-100 text-green-800'
+                              ? themeClasses.alert.success
                               : transactionType.type === 'Outgoing'
-                              ? 'bg-red-100 text-red-800'
-                              : 'bg-blue-100 text-blue-800'
+                              ? themeClasses.alert.error
+                              : themeClasses.alert.info
                           }`}>
                             {transactionType.type}
                           </span>
                         </div>
                         
-                        <p className="text-sm text-gray-600 truncate">
+                        <p className={`text-sm ${themeClasses.text.secondary} truncate`}>
                           {details}
                         </p>
                         
-                        <div className="flex items-center space-x-4 mt-2 text-xs text-gray-500">
+                        <div className={`flex items-center space-x-4 mt-2 text-xs ${themeClasses.text.tertiary}`}>
                           <span className="flex items-center">
                             <Calendar size={12} className="mr-1" />
                             {formatDate(transaction.timestamp)}
@@ -415,7 +417,7 @@ export function TransactionsPage() {
                           if (isUserSource && transaction.sourceAccountBalanceBefore !== undefined && transaction.sourceAccountBalanceBefore !== null) {
                             const sourceAccount = accounts.find(a => a.id === transaction.sourceAccountId);
                             return (
-                              <div className="text-xs text-gray-500 mt-1">
+                              <div className={`text-xs ${themeClasses.text.tertiary} mt-1`}>
                                 {sourceAccount?.coreDetails?.name || 'Account'}: ${transaction.sourceAccountBalanceBefore.toFixed(2)} → ${(transaction.sourceAccountBalanceBefore - transaction.amount).toFixed(2)}
                               </div>
                             );
@@ -424,7 +426,7 @@ export function TransactionsPage() {
                           if (isUserDestination && transaction.destinationAccountBalanceBefore !== undefined && transaction.destinationAccountBalanceBefore !== null) {
                             const destAccount = accounts.find(a => a.id === transaction.destinationAccountId);
                             return (
-                              <div className="text-xs text-gray-500 mt-1">
+                              <div className={`text-xs ${themeClasses.text.tertiary} mt-1`}>
                                 {destAccount?.coreDetails?.name || 'Account'}: ${transaction.destinationAccountBalanceBefore.toFixed(2)} → ${(transaction.destinationAccountBalanceBefore + transaction.amount).toFixed(2)}
                               </div>
                             );
@@ -436,9 +438,9 @@ export function TransactionsPage() {
                       
                       <div className="flex-shrink-0">
                         {isExpanded ? (
-                          <ChevronUp size={20} className="text-gray-400" />
+                          <ChevronUp size={20} className={themeClasses.text.tertiary} />
                         ) : (
-                          <ChevronDown size={20} className="text-gray-400" />
+                          <ChevronDown size={20} className={themeClasses.text.tertiary} />
                         )}
                       </div>
                     </div>
@@ -601,34 +603,34 @@ export function TransactionsPage() {
         <Card title={`Summary - ${dateIntervalOptions.find(opt => opt.value === dateInterval)?.label || 'All Time'}`}>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
             <div>
-              <div className="text-2xl font-bold text-gray-900">
+              <div className={`text-2xl font-bold ${themeClasses.text.primary}`}>
                 {filteredAndSortedTransactions.length}
               </div>
-              <div className="text-sm text-gray-600">Total Transactions</div>
+              <div className={`text-sm ${themeClasses.text.secondary}`}>Total Transactions</div>
             </div>
             
             <div>
-              <div className="text-2xl font-bold text-green-600">
+              <div className={`text-2xl font-bold ${themeClasses.amount.positive}`}>
                 +${filteredAndSortedTransactions
                   .filter(t => getTransactionType(t).type === 'Incoming')
                   .reduce((sum, t) => sum + t.amount, 0)
                   .toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </div>
-              <div className="text-sm text-gray-600">Total Incoming</div>
+              <div className={`text-sm ${themeClasses.text.secondary}`}>Total Incoming</div>
             </div>
             
             <div>
-              <div className="text-2xl font-bold text-red-600">
+              <div className={`text-2xl font-bold ${themeClasses.amount.negative}`}>
                 -${filteredAndSortedTransactions
                   .filter(t => getTransactionType(t).type === 'Outgoing')
                   .reduce((sum, t) => sum + t.amount, 0)
                   .toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </div>
-              <div className="text-sm text-gray-600">Total Outgoing</div>
+              <div className={`text-sm ${themeClasses.text.secondary}`}>Total Outgoing</div>
             </div>
 
             <div>
-              <div className="text-2xl font-bold text-blue-600">
+              <div className={`text-2xl font-bold ${themeClasses.amount.neutral}`}>
                 ${(() => {
                   const incoming = filteredAndSortedTransactions
                     .filter(t => getTransactionType(t).type === 'Incoming')
@@ -640,13 +642,13 @@ export function TransactionsPage() {
                   return `${netFlow >= 0 ? '+' : ''}${netFlow.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
                 })()}
               </div>
-              <div className="text-sm text-gray-600">Net Flow</div>
+              <div className={`text-sm ${themeClasses.text.secondary}`}>Net Flow</div>
             </div>
           </div>
           
           {dateInterval !== 'all' && (
             <div className="mt-4 pt-4 border-t border-gray-200">
-              <div className="text-center text-sm text-gray-500">
+              <div className={`text-center text-sm ${themeClasses.text.tertiary}`}>
                 <Calendar size={14} className="inline mr-1" />
                 Showing transactions from {dateIntervalOptions.find(opt => opt.value === dateInterval)?.label.toLowerCase()}
                 {getDateFilterCutoff(dateInterval) && (

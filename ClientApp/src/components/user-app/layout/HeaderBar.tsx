@@ -1,4 +1,5 @@
 import React from 'react';
+import { useThemeClasses } from '../../../contexts/ThemeContext';
 
 export interface HeaderBarProps {
   title: string;
@@ -6,8 +7,10 @@ export interface HeaderBarProps {
 }
 
 export function HeaderBar({ title, className = '' }: HeaderBarProps) {
+  const themeClasses = useThemeClasses();
+
   return (
-    <div className={`h-12 flex items-center px-4 border-b border-gray-200 text-sm font-semibold ${className}`}>
+    <div className={`h-12 flex items-center px-4 border-b text-sm font-semibold ${themeClasses.border.primary} ${themeClasses.text.primary} ${className}`}>
       {title}
     </div>
   );

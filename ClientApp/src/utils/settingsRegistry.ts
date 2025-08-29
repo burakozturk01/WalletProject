@@ -1,13 +1,3 @@
-/**
- * Settings Registry - Central configuration for all user settings
- * 
- * This registry defines all available settings in the application.
- * Adding new settings only requires updating this file - no backend changes needed.
- * 
- * NOTE: Settings are stored in database but do not affect application behavior yet.
- * This creates the foundation for future implementation.
- */
-
 export type SettingType = 'select' | 'toggle' | 'text' | 'number' | 'color';
 
 export interface SettingOption {
@@ -169,7 +159,7 @@ export const SETTINGS_REGISTRY: SettingDefinition[] = [
     description: 'Application color theme',
     type: 'select',
     category: 'display',
-    defaultValue: 'light',
+    defaultValue: 'dark',
     options: THEME_OPTIONS
   },
   {

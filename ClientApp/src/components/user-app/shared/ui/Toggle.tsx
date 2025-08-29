@@ -1,5 +1,6 @@
 import React from 'react';
 import { ToggleLeft, ToggleRight } from 'lucide-react';
+import { useThemeClasses } from '../../../../contexts/ThemeContext';
 
 export interface ToggleProps {
   checked: boolean;
@@ -10,6 +11,8 @@ export interface ToggleProps {
 }
 
 export function Toggle({ checked, onChange, disabled = false, size = 20, className = '' }: ToggleProps) {
+  const themeClasses = useThemeClasses();
+
   const handleClick = () => {
     if (!disabled && onChange) {
       onChange(!checked);
@@ -18,13 +21,13 @@ export function Toggle({ checked, onChange, disabled = false, size = 20, classNa
 
   return (
     <div 
-      className={`cursor-pointer ${disabled ? 'opacity-50 cursor-not-allowed' : ''} ${className}`}
+      className={`cursor-pointer transition-opacity ${disabled ? 'opacity-50 cursor-not-allowed' : ''} ${className}`}
       onClick={handleClick}
     >
       {checked ? (
-        <ToggleRight size={size} color="#007bff" />
+        <ToggleRight size={size} color="#007bff" className="transition-colors" />
       ) : (
-        <ToggleLeft size={size} className="text-gray-400" />
+        <ToggleLeft size={size} className={`${themeClasses.text.muted} transition-colors`} />
       )}
     </div>
   );

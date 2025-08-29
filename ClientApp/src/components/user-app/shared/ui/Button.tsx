@@ -1,4 +1,5 @@
 import React from 'react';
+import { useThemeClasses } from '../../../../contexts/ThemeContext';
 
 export interface ButtonProps {
   children: React.ReactNode;
@@ -23,18 +24,20 @@ export function Button({
   className = '',
   icon
 }: ButtonProps) {
+  const themeClasses = useThemeClasses();
+
   const getVariantStyles = () => {
     switch (variant) {
       case 'success':
-        return 'bg-green-600 text-white hover:bg-green-700';
+        return themeClasses.button.success;
       case 'danger':
-        return 'bg-red-600 text-white hover:bg-red-700';
+        return themeClasses.button.danger;
       case 'teal':
-        return 'bg-teal-500 text-white hover:bg-teal-600';
+        return themeClasses.button.teal;
       case 'secondary':
-        return 'bg-gray-600 text-white hover:bg-gray-700';
+        return themeClasses.button.secondary;
       default:
-        return 'bg-blue-600 text-white hover:bg-blue-700';
+        return themeClasses.button.primary;
     }
   };
 

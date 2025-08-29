@@ -1,4 +1,5 @@
 import React from 'react';
+import { useThemeClasses } from '../../../../contexts/ThemeContext';
 
 export interface CardProps {
   title?: string;
@@ -7,10 +8,12 @@ export interface CardProps {
 }
 
 export function Card({ title, children, className = '' }: CardProps) {
+  const themeClasses = useThemeClasses();
+
   return (
-    <div className={`rounded-2xl border border-gray-200 bg-white shadow-sm p-4 ${className}`}>
+    <div className={`rounded-2xl border p-4 ${themeClasses.border.primary} ${themeClasses.bg.card} ${themeClasses.shadow.sm} ${className}`}>
       {title && (
-        <div className="mb-3 text-sm text-gray-500">{title}</div>
+        <div className={`mb-3 text-sm ${themeClasses.text.secondary}`}>{title}</div>
       )}
       {children}
     </div>

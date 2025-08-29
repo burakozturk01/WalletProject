@@ -3,11 +3,13 @@ import { ArrowRight, Send, CreditCard, Building, User } from 'lucide-react';
 import { Card, Button, Dropdown } from '../../shared/ui';
 import { useAuth } from '../../../../hooks/useAuth';
 import { useUserData } from '../../../../hooks/useUserData';
+import { useThemeClasses } from '../../../../contexts/ThemeContext';
 import { api } from '../../../../services/api';
 
 export function TransferPayPage() {
   const { user } = useAuth();
   const { accounts, refreshData } = useUserData(user?.id);
+  const themeClasses = useThemeClasses();
   const [activeTab, setActiveTab] = useState<'transfer' | 'deposit' | 'withdraw'>('transfer');
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState('');
@@ -164,18 +166,18 @@ export function TransferPayPage() {
     <div className="p-6 space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Transfer & Pay</h1>
-        <p className="text-gray-600 mt-1">Send money, deposit funds, or withdraw to external accounts</p>
+        <h1 className={`text-3xl font-bold ${themeClasses.text.primary}`}>Transfer & Pay</h1>
+        <p className={`${themeClasses.text.secondary} mt-1`}>Send money, deposit funds, or withdraw to external accounts</p>
       </div>
 
       {/* Tabs */}
-      <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
+      <div className={`flex space-x-1 ${themeClasses.bg.tertiary} p-1 rounded-lg`}>
         <button
           onClick={() => setActiveTab('transfer')}
           className={`flex-1 flex items-center justify-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
             activeTab === 'transfer'
-              ? 'bg-white text-blue-600 shadow-sm'
-              : 'text-gray-600 hover:text-gray-900'
+              ? `${themeClasses.bg.card} ${themeClasses.brand.primary} ${themeClasses.shadow.sm}`
+              : `${themeClasses.text.secondary} ${themeClasses.bg.hover}`
           }`}
         >
           <ArrowRight size={16} className="mr-2" />
@@ -185,8 +187,8 @@ export function TransferPayPage() {
           onClick={() => setActiveTab('deposit')}
           className={`flex-1 flex items-center justify-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
             activeTab === 'deposit'
-              ? 'bg-white text-green-600 shadow-sm'
-              : 'text-gray-600 hover:text-gray-900'
+              ? `${themeClasses.bg.card} ${themeClasses.amount.positive} ${themeClasses.shadow.sm}`
+              : `${themeClasses.text.secondary} ${themeClasses.bg.hover}`
           }`}
         >
           <CreditCard size={16} className="mr-2" />
@@ -196,8 +198,8 @@ export function TransferPayPage() {
           onClick={() => setActiveTab('withdraw')}
           className={`flex-1 flex items-center justify-center px-4 py-2 rounded-md text-sm font-medium transition-colors ${
             activeTab === 'withdraw'
-              ? 'bg-white text-red-600 shadow-sm'
-              : 'text-gray-600 hover:text-gray-900'
+              ? `${themeClasses.bg.card} ${themeClasses.amount.negative} ${themeClasses.shadow.sm}`
+              : `${themeClasses.text.secondary} ${themeClasses.bg.hover}`
           }`}
         >
           <Building size={16} className="mr-2" />
@@ -221,7 +223,7 @@ export function TransferPayPage() {
         <Card title="Transfer Money">
           <form onSubmit={handleTransfer} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className={`block text-sm font-medium ${themeClasses.text.primary} mb-1`}>
                 From Account
               </label>
               <Dropdown
@@ -232,14 +234,14 @@ export function TransferPayPage() {
                 placeholder="Select source account"
               />
               {transferData.sourceAccountId && (
-                <p className="text-xs text-gray-500 mt-1">
+                <p className={`text-xs ${themeClasses.text.tertiary} mt-1`}>
                   Available: ${getAvailableBalance(transferData.sourceAccountId).toFixed(2)}
                 </p>
               )}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className={`block text-sm font-medium ${themeClasses.text.primary} mb-1`}>
                 To
               </label>
               <div className="flex space-x-2 mb-2">
@@ -248,8 +250,8 @@ export function TransferPayPage() {
                   onClick={() => setTransferData({ ...transferData, destinationType: 'account' })}
                   className={`px-3 py-1 text-xs rounded ${
                     transferData.destinationType === 'account'
-                      ? 'bg-blue-100 text-blue-800'
-                      : 'bg-gray-100 text-gray-600'
+                      ? `${themeClasses.button.primary} text-white`
+                      : `${themeClasses.bg.tertiary} ${themeClasses.text.secondary}`
                   }`}
                 >
                   My Account
@@ -259,8 +261,8 @@ export function TransferPayPage() {
                   onClick={() => setTransferData({ ...transferData, destinationType: 'iban' })}
                   className={`px-3 py-1 text-xs rounded ${
                     transferData.destinationType === 'iban'
-                      ? 'bg-blue-100 text-blue-800'
-                      : 'bg-gray-100 text-gray-600'
+                      ? `${themeClasses.button.primary} text-white`
+                      : `${themeClasses.bg.tertiary} ${themeClasses.text.secondary}`
                   }`}
                 >
                   External Account
@@ -281,7 +283,7 @@ export function TransferPayPage() {
                     type="text"
                     value={transferData.destinationIban}
                     onChange={(e) => setTransferData({ ...transferData, destinationIban: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className={`w-full px-3 py-2 ${themeClasses.input.base} rounded-md focus:outline-none focus:ring-2 ${themeClasses.ring.focus}`}
                     placeholder="IBAN (e.g., GB29 NWBK 6016 1331 9268 19)"
                     maxLength={34}
                     required
@@ -290,7 +292,7 @@ export function TransferPayPage() {
                     type="text"
                     value={transferData.destinationName}
                     onChange={(e) => setTransferData({ ...transferData, destinationName: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className={`w-full px-3 py-2 ${themeClasses.input.base} rounded-md focus:outline-none focus:ring-2 ${themeClasses.ring.focus}`}
                     placeholder="Recipient name"
                     maxLength={255}
                   />
@@ -299,7 +301,7 @@ export function TransferPayPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className={`block text-sm font-medium ${themeClasses.text.primary} mb-1`}>
                 Amount
               </label>
               <input
@@ -307,7 +309,7 @@ export function TransferPayPage() {
                 step="0.01"
                 value={transferData.amount}
                 onChange={(e) => setTransferData({ ...transferData, amount: parseFloat(e.target.value) || 0 })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`w-full px-3 py-2 ${themeClasses.input.base} rounded-md focus:outline-none focus:ring-2 ${themeClasses.ring.focus}`}
                 placeholder="0.00"
                 min="0.01"
                 required
@@ -315,14 +317,14 @@ export function TransferPayPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className={`block text-sm font-medium ${themeClasses.text.primary} mb-1`}>
                 Description
               </label>
               <input
                 type="text"
                 value={transferData.description}
                 onChange={(e) => setTransferData({ ...transferData, description: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`w-full px-3 py-2 ${themeClasses.input.base} rounded-md focus:outline-none focus:ring-2 ${themeClasses.ring.focus}`}
                 placeholder="What's this transfer for?"
                 maxLength={500}
                 required
@@ -346,7 +348,7 @@ export function TransferPayPage() {
         <Card title="Deposit Funds">
           <form onSubmit={handleDeposit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className={`block text-sm font-medium ${themeClasses.text.primary} mb-1`}>
                 To Account
               </label>
               <Dropdown
@@ -359,14 +361,14 @@ export function TransferPayPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className={`block text-sm font-medium ${themeClasses.text.primary} mb-1`}>
                 From External Account (IBAN)
               </label>
               <input
                 type="text"
                 value={depositData.sourceIban}
                 onChange={(e) => setDepositData({ ...depositData, sourceIban: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`w-full px-3 py-2 ${themeClasses.input.base} rounded-md focus:outline-none focus:ring-2 ${themeClasses.ring.focus}`}
                 placeholder="IBAN (e.g., GB29 NWBK 6016 1331 9268 19)"
                 maxLength={34}
                 required
@@ -374,21 +376,21 @@ export function TransferPayPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className={`block text-sm font-medium ${themeClasses.text.primary} mb-1`}>
                 Source Name
               </label>
               <input
                 type="text"
                 value={depositData.sourceName}
                 onChange={(e) => setDepositData({ ...depositData, sourceName: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`w-full px-3 py-2 ${themeClasses.input.base} rounded-md focus:outline-none focus:ring-2 ${themeClasses.ring.focus}`}
                 placeholder="Source account name"
                 maxLength={255}
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className={`block text-sm font-medium ${themeClasses.text.primary} mb-1`}>
                 Amount
               </label>
               <input
@@ -396,7 +398,7 @@ export function TransferPayPage() {
                 step="0.01"
                 value={depositData.amount}
                 onChange={(e) => setDepositData({ ...depositData, amount: parseFloat(e.target.value) || 0 })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`w-full px-3 py-2 ${themeClasses.input.base} rounded-md focus:outline-none focus:ring-2 ${themeClasses.ring.focus}`}
                 placeholder="0.00"
                 min="0.01"
                 required
@@ -404,14 +406,14 @@ export function TransferPayPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className={`block text-sm font-medium ${themeClasses.text.primary} mb-1`}>
                 Description
               </label>
               <input
                 type="text"
                 value={depositData.description}
                 onChange={(e) => setDepositData({ ...depositData, description: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`w-full px-3 py-2 ${themeClasses.input.base} rounded-md focus:outline-none focus:ring-2 ${themeClasses.ring.focus}`}
                 placeholder="What's this deposit for?"
                 maxLength={500}
                 required
@@ -435,7 +437,7 @@ export function TransferPayPage() {
         <Card title="Withdraw Funds">
           <form onSubmit={handleWithdraw} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className={`block text-sm font-medium ${themeClasses.text.primary} mb-1`}>
                 From Account
               </label>
               <Dropdown
@@ -446,21 +448,21 @@ export function TransferPayPage() {
                 placeholder="Select account to withdraw from"
               />
               {withdrawData.accountId && (
-                <p className="text-xs text-gray-500 mt-1">
+                <p className={`text-xs ${themeClasses.text.tertiary} mt-1`}>
                   Available: ${getAvailableBalance(withdrawData.accountId).toFixed(2)}
                 </p>
               )}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className={`block text-sm font-medium ${themeClasses.text.primary} mb-1`}>
                 To External Account (IBAN)
               </label>
               <input
                 type="text"
                 value={withdrawData.destinationIban}
                 onChange={(e) => setWithdrawData({ ...withdrawData, destinationIban: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`w-full px-3 py-2 ${themeClasses.input.base} rounded-md focus:outline-none focus:ring-2 ${themeClasses.ring.focus}`}
                 placeholder="IBAN (e.g., GB29 NWBK 6016 1331 9268 19)"
                 maxLength={34}
                 required
@@ -468,21 +470,21 @@ export function TransferPayPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className={`block text-sm font-medium ${themeClasses.text.primary} mb-1`}>
                 Recipient Name
               </label>
               <input
                 type="text"
                 value={withdrawData.destinationName}
                 onChange={(e) => setWithdrawData({ ...withdrawData, destinationName: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`w-full px-3 py-2 ${themeClasses.input.base} rounded-md focus:outline-none focus:ring-2 ${themeClasses.ring.focus}`}
                 placeholder="Recipient account name"
                 maxLength={255}
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className={`block text-sm font-medium ${themeClasses.text.primary} mb-1`}>
                 Amount
               </label>
               <input
@@ -490,7 +492,7 @@ export function TransferPayPage() {
                 step="0.01"
                 value={withdrawData.amount}
                 onChange={(e) => setWithdrawData({ ...withdrawData, amount: parseFloat(e.target.value) || 0 })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`w-full px-3 py-2 ${themeClasses.input.base} rounded-md focus:outline-none focus:ring-2 ${themeClasses.ring.focus}`}
                 placeholder="0.00"
                 min="0.01"
                 required
@@ -498,14 +500,14 @@ export function TransferPayPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className={`block text-sm font-medium ${themeClasses.text.primary} mb-1`}>
                 Description
               </label>
               <input
                 type="text"
                 value={withdrawData.description}
                 onChange={(e) => setWithdrawData({ ...withdrawData, description: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`w-full px-3 py-2 ${themeClasses.input.base} rounded-md focus:outline-none focus:ring-2 ${themeClasses.ring.focus}`}
                 placeholder="What's this withdrawal for?"
                 maxLength={500}
                 required
@@ -529,24 +531,24 @@ export function TransferPayPage() {
         <Card title="Account Overview">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="text-center">
-              <div className="text-2xl font-bold text-gray-900">
+              <div className={`text-2xl font-bold ${themeClasses.text.primary}`}>
                 {activeAccounts.length}
               </div>
-              <div className="text-sm text-gray-600">Active Accounts</div>
+              <div className={`text-sm ${themeClasses.text.secondary}`}>Active Accounts</div>
             </div>
             
             <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">
+              <div className={`text-2xl font-bold ${themeClasses.amount.positive}`}>
                 ${activeAccounts.reduce((sum, acc) => sum + (acc.coreDetails?.balance || 0), 0).toFixed(2)}
               </div>
-              <div className="text-sm text-gray-600">Total Balance</div>
+              <div className={`text-sm ${themeClasses.text.secondary}`}>Total Balance</div>
             </div>
             
             <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">
+              <div className={`text-2xl font-bold ${themeClasses.brand.primary}`}>
                 {activeAccounts.filter(acc => acc.activeAccount).length}
               </div>
-              <div className="text-sm text-gray-600">IBAN Enabled</div>
+              <div className={`text-sm ${themeClasses.text.secondary}`}>IBAN Enabled</div>
             </div>
           </div>
         </Card>

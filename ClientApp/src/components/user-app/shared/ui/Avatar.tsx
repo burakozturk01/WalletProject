@@ -1,4 +1,5 @@
 import React from 'react';
+import { useThemeClasses } from '../../../../contexts/ThemeContext';
 
 export interface AvatarProps {
   name: string;
@@ -8,6 +9,7 @@ export interface AvatarProps {
 }
 
 export function Avatar({ name, size = 'medium', showName = true, className = '' }: AvatarProps) {
+  const themeClasses = useThemeClasses();
   const initials = name
     .split(' ')
     .map((n) => n[0])
@@ -32,7 +34,7 @@ export function Avatar({ name, size = 'medium', showName = true, className = '' 
         {initials}
       </div>
       {showName && (
-        <div className="text-sm font-medium">{name}</div>
+        <div className={`text-sm font-medium ${themeClasses.text.primary}`}>{name}</div>
       )}
     </div>
   );

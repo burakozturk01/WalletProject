@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ChevronDown } from 'lucide-react';
+import { useThemeClasses } from '../../../../contexts/ThemeContext';
 
 export interface DropdownOption {
   value: string;
@@ -23,6 +24,7 @@ export function Dropdown({
 }: DropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const themeClasses = useThemeClasses();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -43,26 +45,28 @@ export function Dropdown({
     <div className={`relative ${className}`} ref={dropdownRef}>
       <button
         type="button"
-        className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-left shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 flex items-center justify-between"
+        className={`w-full ${themeClasses.input.base} rounded-lg px-3 py-2 text-left ${themeClasses.shadow.sm} focus:outline-none focus:ring-2 ${themeClasses.ring.focus} flex items-center justify-between`}
         onClick={() => setIsOpen(!isOpen)}
       >
-        <span className={selectedOption ? 'text-gray-900' : 'text-gray-500'}>
+        <span className={selectedOption ? themeClasses.text.primary : themeClasses.text.tertiary}>
           {selectedOption ? selectedOption.label : placeholder}
         </span>
         <ChevronDown 
           size={16} 
-          className={`text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} 
+          className={`${themeClasses.text.tertiary} transition-transform ${isOpen ? 'rotate-180' : ''}`} 
         />
       </button>
 
       {isOpen && (
-        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-auto">
+        <div className={`absolute z-10 w-full mt-1 ${themeClasses.bg.card} ${themeClasses.border.primary} border rounded-lg ${themeClasses.shadow.lg} max-h-60 overflow-auto`}>
           {options.map((option) => (
             <button
               key={option.value}
               type="button"
-              className={`w-full px-3 py-2 text-left hover:bg-gray-50 focus:outline-none focus:bg-gray-50 ${
-                value === option.value ? 'bg-blue-50 text-blue-600' : 'text-gray-900'
+              className={`w-full px-3 py-2 text-left focus:outline-none ${
+                value === option.value 
+                  ? `${themeClasses.button.primary} text-white` 
+                  : `${themeClasses.bg.hover} ${themeClasses.text.primary}`
               }`}
               onClick={() => {
                 onChange(option.value);

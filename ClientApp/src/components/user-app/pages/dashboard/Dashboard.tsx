@@ -6,6 +6,7 @@ import { useAuth } from '../../../../hooks/useAuth';
 import { useUserData } from '../../../../hooks/useUserData';
 import { useActivities, Activity } from '../../../../hooks/useActivities';
 import { useTimezone } from '../../../../hooks/useTimezone';
+import { useThemeClasses } from '../../../../contexts/ThemeContext';
 
 export interface DashboardProps {
   totalBalance?: number;
@@ -27,6 +28,7 @@ export function Dashboard({
   const [timeFilter, setTimeFilter] = useState('week');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const { activities, isLoading: activitiesLoading, error: activitiesError, refreshActivities } = useActivities(user?.id, timeFilter);
+  const themeClasses = useThemeClasses();
 
   if (isLoading) {
     return (
@@ -111,22 +113,22 @@ export function Dashboard({
 
   const getPriorityBadge = (priority: string) => {
     const badges = {
-      high: 'bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full',
-      medium: 'bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full',
-      low: 'bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full'
+      high: `${themeClasses.alert.error} text-xs px-2 py-1 rounded-full`,
+      medium: `${themeClasses.alert.warning} text-xs px-2 py-1 rounded-full`,
+      low: `${themeClasses.bg.tertiary} ${themeClasses.text.secondary} text-xs px-2 py-1 rounded-full`
     };
     return badges[priority as keyof typeof badges] || badges.medium;
   };
 
   const renderActivityItem = (activity: Activity) => (
     <div key={activity.id} className={`flex items-center justify-between p-3 rounded-lg transition-colors ${
-      activity.priority === 'high' ? 'bg-red-50 hover:bg-red-100 border-l-4 border-red-400' :
-      activity.priority === 'medium' ? 'bg-gray-50 hover:bg-gray-100' :
-      'bg-gray-25 hover:bg-gray-50'
+      activity.priority === 'high' ? `${themeClasses.alert.error} ${themeClasses.bg.hover} border-l-4 border-red-400` :
+      activity.priority === 'medium' ? `${themeClasses.bg.secondary} ${themeClasses.bg.hover}` :
+      `${themeClasses.bg.tertiary} ${themeClasses.bg.hover}`
     }`}>
       <div className="flex items-center space-x-3">
-        <div className={`flex items-center justify-center rounded-full shadow-sm ${
-          activity.priority === 'high' ? 'w-12 h-12 bg-white' : 'w-10 h-10 bg-white'
+        <div className={`flex items-center justify-center rounded-full ${themeClasses.shadow.sm} ${
+          activity.priority === 'high' ? `w-12 h-12 ${themeClasses.bg.card}` : `w-10 h-10 ${themeClasses.bg.card}`
         }`}>
           <div className={activity.color}>
             {getActivityIcon(activity.icon, activity.priority)}
@@ -134,12 +136,12 @@ export function Dashboard({
         </div>
         <div className="flex-1">
           <div className="flex items-center space-x-2">
-            <div className="font-medium text-gray-900">{activity.title}</div>
+            <div className={`font-medium ${themeClasses.text.primary}`}>{activity.title}</div>
             <span className={getPriorityBadge(activity.priority)}>
               {activity.priority}
             </span>
           </div>
-          <div className="text-sm text-gray-500 mt-1">{activity.description}</div>
+          <div className={`text-sm ${themeClasses.text.secondary} mt-1`}>{activity.description}</div>
         </div>
       </div>
       <div className="text-right">
@@ -148,7 +150,7 @@ export function Dashboard({
             ${activity.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
         )}
-        <div className="text-sm text-gray-500 flex items-center justify-end mt-1">
+        <div className={`text-sm ${themeClasses.text.secondary} flex items-center justify-end mt-1`}>
           <Clock size={12} className="mr-1" />
           {formatActivityDate(activity.timestamp)}
         </div>
@@ -162,10 +164,10 @@ export function Dashboard({
       {/* Top row with Total Balance and Quick Actions */}
       <div className="grid grid-cols-2 gap-4">
         <Card title="Total Balance">
-          <div className="text-3xl font-extrabold text-green-600">
+          <div className={`text-3xl font-extrabold ${themeClasses.amount.positive}`}>
             ${displayBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
-          <div className="text-sm text-gray-500 mt-2">
+          <div className={`text-sm ${themeClasses.text.secondary} mt-2`}>
             {totalBalance?.activeAccountCount || 0} active accounts
           </div>
           <Sparkline color="#28a745" />
@@ -201,28 +203,27 @@ export function Dashboard({
       {/* Activity Statistics */}
       <div className="grid grid-cols-4 gap-4">
         <Card title="Deposits" className="text-center">
-          <div className="text-2xl font-bold text-green-600">{stats.deposits}</div>
-          <div className="text-sm text-gray-500">This period</div>
+          <div className={`text-2xl font-bold ${themeClasses.amount.positive}`}>{stats.deposits}</div>
+          <div className={`text-sm ${themeClasses.text.secondary}`}>This period</div>
         </Card>
         <Card title="Withdrawals" className="text-center">
-          <div className="text-2xl font-bold text-red-600">{stats.withdrawals}</div>
-          <div className="text-sm text-gray-500">This period</div>
+          <div className={`text-2xl font-bold ${themeClasses.amount.negative}`}>{stats.withdrawals}</div>
+          <div className={`text-sm ${themeClasses.text.secondary}`}>This period</div>
         </Card>
         <Card title="Transfers" className="text-center">
-          <div className="text-2xl font-bold text-blue-600">{stats.transfers}</div>
-          <div className="text-sm text-gray-500">This period</div>
+          <div className={`text-2xl font-bold ${themeClasses.amount.neutral}`}>{stats.transfers}</div>
+          <div className={`text-sm ${themeClasses.text.secondary}`}>This period</div>
         </Card>
         <Card title="Account Actions" className="text-center">
-          <div className="text-2xl font-bold text-purple-600">{stats.accountActions}</div>
-          <div className="text-sm text-gray-500">This period</div>
+          <div className={`text-2xl font-bold ${themeClasses.brand.primary}`}>{stats.accountActions}</div>
+          <div className={`text-sm ${themeClasses.text.secondary}`}>This period</div>
         </Card>
       </div>
 
-      {/* Recent Activities section spanning full width */}
       <Card title="Recent Activities" className="w-full">
         <div className="mb-4 flex items-center justify-between flex-wrap gap-2">
           <div className="flex items-center space-x-4">
-            <div className="text-sm text-gray-600">
+            <div className={`text-sm ${themeClasses.text.secondary}`}>
               Filter activities
             </div>
             <Button
@@ -251,12 +252,12 @@ export function Dashboard({
         </div>
 
         {activitiesLoading ? (
-          <div className="text-center py-8 text-gray-500">
-            <Clock size={48} className="mx-auto mb-3 text-gray-300 animate-spin" />
+          <div className={`text-center py-8 ${themeClasses.text.secondary}`}>
+            <Clock size={48} className={`mx-auto mb-3 ${themeClasses.text.muted} animate-spin`} />
             <p>Loading activities...</p>
           </div>
         ) : activitiesError ? (
-          <div className="text-center py-8 text-red-500">
+          <div className={`text-center py-8 ${themeClasses.status.error}`}>
             <p>Error loading activities: {activitiesError}</p>
             <Button
               variant="secondary"
@@ -268,10 +269,9 @@ export function Dashboard({
           </div>
         ) : filteredActivities && filteredActivities.length > 0 ? (
           <div className="space-y-4 max-h-96 overflow-y-auto">
-            {/* High Priority Activities */}
             {groupedActivities.high.length > 0 && (
               <div>
-                <h4 className="text-sm font-semibold text-red-700 mb-2 flex items-center">
+                <h4 className={`text-sm font-semibold ${themeClasses.status.error} mb-2 flex items-center`}>
                   <div className="w-2 h-2 bg-red-500 rounded-full mr-2"></div>
                   High Priority ({groupedActivities.high.length})
                 </h4>
@@ -281,10 +281,9 @@ export function Dashboard({
               </div>
             )}
 
-            {/* Medium Priority Activities */}
             {groupedActivities.medium.length > 0 && (
               <div>
-                <h4 className="text-sm font-semibold text-yellow-700 mb-2 flex items-center">
+                <h4 className={`text-sm font-semibold ${themeClasses.status.warning} mb-2 flex items-center`}>
                   <div className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></div>
                   Recent Activities ({groupedActivities.medium.length})
                 </h4>
@@ -294,10 +293,9 @@ export function Dashboard({
               </div>
             )}
 
-            {/* Low Priority Activities */}
             {groupedActivities.low.length > 0 && (
               <div>
-                <h4 className="text-sm font-semibold text-gray-600 mb-2 flex items-center">
+                <h4 className={`text-sm font-semibold ${themeClasses.text.secondary} mb-2 flex items-center`}>
                   <div className="w-2 h-2 bg-gray-400 rounded-full mr-2"></div>
                   Other Activities ({groupedActivities.low.length})
                 </h4>
@@ -308,8 +306,8 @@ export function Dashboard({
             )}
           </div>
         ) : (
-          <div className="text-center py-8 text-gray-500">
-            <Clock size={48} className="mx-auto mb-3 text-gray-300" />
+          <div className={`text-center py-8 ${themeClasses.text.secondary}`}>
+            <Clock size={48} className={`mx-auto mb-3 ${themeClasses.text.muted}`} />
             <p>No activities found</p>
             <p className="text-sm">
               {categoryFilter === 'all' 

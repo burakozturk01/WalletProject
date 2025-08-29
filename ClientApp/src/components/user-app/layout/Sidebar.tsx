@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { NavItem } from './NavItem';
 import { Avatar } from '../shared/ui';
+import { useThemeClasses } from '../../../contexts/ThemeContext';
 
 export interface SidebarProps {
   userName?: string;
@@ -24,19 +25,18 @@ export function Sidebar({
   onLogout,
   className = '' 
 }: SidebarProps) {
-  const backgroundColor = dark ? '#212529' : '#f8f9fa';
+  const themeClasses = useThemeClasses();
 
   return (
     <aside 
-      className={`flex h-full w-60 flex-col justify-between border-r border-gray-200 ${className}`}
-      style={{ backgroundColor }}
+      className={`flex h-full w-60 flex-col justify-between border-r ${themeClasses.border.primary} ${themeClasses.bg.card} ${className}`}
     >
       <div className="p-4">
         <div className="flex items-center gap-2 mb-4">
           <div className="h-8 w-8 rounded-xl flex items-center justify-center bg-blue-500 text-white">
             <Wallet size={18} />
           </div>
-          <div className="font-bold">Wallet</div>
+          <div className={`font-bold ${themeClasses.text.primary}`}>Wallet</div>
         </div>
         
         <nav className="flex flex-col gap-1">
@@ -62,7 +62,7 @@ export function Sidebar({
           />
         </nav>
         
-        <div className="my-4 border-t border-gray-200" />
+        <div className={`my-4 border-t ${themeClasses.border.primary}`} />
         
         <nav className="flex flex-col gap-1">
           <NavItem 

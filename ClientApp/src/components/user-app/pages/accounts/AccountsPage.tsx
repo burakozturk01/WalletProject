@@ -4,12 +4,14 @@ import { Card, Button } from '../../shared/ui';
 import { useAuth } from '../../../../hooks/useAuth';
 import { useUserData } from '../../../../hooks/useUserData';
 import { useTimezone } from '../../../../hooks/useTimezone';
+import { useThemeClasses } from '../../../../contexts/ThemeContext';
 import { api } from '../../../../services/api';
 
 export function AccountsPage() {
   const { user } = useAuth();
   const { accounts, totalBalance, isLoading, error, refreshData } = useUserData(user?.id);
   const { formatDate } = useTimezone();
+  const themeClasses = useThemeClasses();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showBalances, setShowBalances] = useState(true);
   const [formData, setFormData] = useState({
@@ -87,8 +89,8 @@ export function AccountsPage() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">My Accounts</h1>
-          <p className="text-gray-600 mt-1">
+          <h1 className={`text-3xl font-bold ${themeClasses.text.primary}`}>My Accounts</h1>
+          <p className={`${themeClasses.text.secondary} mt-1`}>
             Manage your {accounts.length} account{accounts.length !== 1 ? 's' : ''}
           </p>
         </div>
@@ -112,13 +114,13 @@ export function AccountsPage() {
 
       {/* Total Balance Card */}
       <Card title="Total Balance">
-        <div className="text-4xl font-bold text-green-600">
+        <div className={`text-4xl font-bold ${themeClasses.amount.positive}`}>
           {showBalances 
             ? `$${(totalBalance?.totalBalance || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
             : '••••••'
           }
         </div>
-        <div className="text-sm text-gray-500 mt-2">
+        <div className={`text-sm ${themeClasses.text.secondary} mt-2`}>
           {totalBalance?.activeAccountCount || 0} active accounts • {totalBalance?.accountCount || 0} total accounts
         </div>
       </Card>
@@ -209,8 +211,8 @@ export function AccountsPage() {
       <div className="grid gap-4">
         {accounts.length === 0 ? (
           <Card>
-            <div className="text-center py-8 text-gray-500">
-              <CreditCard size={48} className="mx-auto mb-3 text-gray-300" />
+            <div className={`text-center py-8 ${themeClasses.text.secondary}`}>
+              <CreditCard size={48} className={`mx-auto mb-3 ${themeClasses.text.muted}`} />
               <p className="text-lg font-medium">No accounts yet</p>
               <p className="text-sm">Create your first account to get started</p>
             </div>
@@ -221,17 +223,17 @@ export function AccountsPage() {
               <div className="flex justify-between items-start">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
-                    <CreditCard size={20} className="text-blue-600" />
-                    <h3 className="text-lg font-semibold text-gray-900">
+                    <CreditCard size={20} className={themeClasses.brand.primary} />
+                    <h3 className={`text-lg font-semibold ${themeClasses.text.primary}`}>
                       {account.coreDetails?.name || 'Unnamed Account'}
                     </h3>
                     {account.isMain && (
-                      <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
+                      <span className={`px-2 py-1 text-xs font-medium ${themeClasses.button.primary} rounded-full`}>
                         Main
                       </span>
                     )}
                     {account.isDeleted && (
-                      <span className="px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded-full">
+                      <span className={`px-2 py-1 text-xs font-medium ${themeClasses.alert.error} rounded-full`}>
                         Deleted
                       </span>
                     )}
@@ -239,8 +241,8 @@ export function AccountsPage() {
 
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Balance:</span>
-                      <span className="text-lg font-bold text-green-600">
+                      <span className={`text-sm ${themeClasses.text.secondary}`}>Balance:</span>
+                      <span className={`text-lg font-bold ${themeClasses.amount.positive}`}>
                         {showBalances 
                           ? `$${(account.coreDetails?.balance || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
                           : '••••••'
@@ -250,16 +252,16 @@ export function AccountsPage() {
 
                     {account.activeAccount && (
                       <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-600">IBAN:</span>
-                        <span className="text-sm font-mono text-gray-900">
+                        <span className={`text-sm ${themeClasses.text.secondary}`}>IBAN:</span>
+                        <span className={`text-sm font-mono ${themeClasses.text.primary}`}>
                           {account.activeAccount.iban}
                         </span>
                       </div>
                     )}
 
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Created:</span>
-                      <span className="text-sm text-gray-900">
+                      <span className={`text-sm ${themeClasses.text.secondary}`}>Created:</span>
+                      <span className={`text-sm ${themeClasses.text.primary}`}>
                         {formatDate(account.createdAt)}
                       </span>
                     </div>
@@ -267,22 +269,22 @@ export function AccountsPage() {
                     {/* Components */}
                     <div className="flex flex-wrap gap-1 mt-2">
                       {account.coreDetails && (
-                        <span className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded">
+                        <span className={`px-2 py-1 text-xs ${themeClasses.bg.tertiary} ${themeClasses.text.secondary} rounded`}>
                           Core Details
                         </span>
                       )}
                       {account.activeAccount && (
-                        <span className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded">
+                        <span className={`px-2 py-1 text-xs ${themeClasses.alert.success} rounded`}>
                           Active Account
                         </span>
                       )}
                       {account.spendingLimit && (
-                        <span className="px-2 py-1 text-xs bg-yellow-100 text-yellow-700 rounded">
+                        <span className={`px-2 py-1 text-xs ${themeClasses.alert.warning} rounded`}>
                           Spending Limit
                         </span>
                       )}
                       {account.savingGoal && (
-                        <span className="px-2 py-1 text-xs bg-purple-100 text-purple-700 rounded">
+                        <span className={`px-2 py-1 text-xs ${themeClasses.alert.info} rounded`}>
                           Saving Goal
                         </span>
                       )}
