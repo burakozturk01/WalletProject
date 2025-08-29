@@ -1,3 +1,20 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+html {
+  background-color: #F9FAFB;
+}
+
+html.dark {
+  background-color: #212936;
+}
+
+body {
+  background-color: inherit;
+  min-height: 100vh;
+}
+
+html.dark body {
+  background-color: #212936;
+}

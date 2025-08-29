@@ -144,73 +144,165 @@ export function AccountManager({ accounts, users, onRefresh }: AccountManagerPro
     }
   };
 
-  const buttonStyle = {
-    padding: '8px 16px',
+  const buttonStyle: React.CSSProperties = {
+    padding: '10px 16px',
     margin: '4px',
     border: 'none',
-    borderRadius: '4px',
+    borderRadius: '8px',
     cursor: 'pointer',
-    fontSize: '14px'
+    fontSize: '14px',
+    fontWeight: 500,
+    transition: 'all 0.2s ease',
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '6px'
   };
 
-  const inputStyle = {
+  const primaryButtonStyle = {
+    ...buttonStyle,
+    backgroundColor: '#3b82f6',
+    color: '#ffffff',
+    boxShadow: '0 2px 4px rgba(59, 130, 246, 0.3)'
+  };
+
+  const successButtonStyle = {
+    ...buttonStyle,
+    backgroundColor: '#10b981',
+    color: '#ffffff',
+    boxShadow: '0 2px 4px rgba(16, 185, 129, 0.3)'
+  };
+
+  const dangerButtonStyle = {
+    ...buttonStyle,
+    backgroundColor: '#ef4444',
+    color: '#ffffff',
+    boxShadow: '0 2px 4px rgba(239, 68, 68, 0.3)'
+  };
+
+  const inputStyle: React.CSSProperties = {
     width: '100%',
-    padding: '8px',
-    margin: '4px 0',
-    border: '1px solid #ddd',
-    borderRadius: '4px',
-    fontSize: '14px'
+    padding: '12px 16px',
+    margin: '8px 0',
+    border: '1px solid #475569',
+    borderRadius: '8px',
+    fontSize: '14px',
+    backgroundColor: '#334155',
+    color: '#f8fafc',
+    transition: 'all 0.2s ease'
   };
 
-  const checkboxStyle = {
-    margin: '4px 8px 4px 0'
+  const selectStyle: React.CSSProperties = {
+    ...inputStyle,
+    cursor: 'pointer'
+  };
+
+  const labelStyle: React.CSSProperties = {
+    display: 'block',
+    marginBottom: '4px',
+    color: '#e2e8f0',
+    fontSize: '14px',
+    fontWeight: 500
+  };
+
+  const checkboxStyle: React.CSSProperties = {
+    margin: '4px 8px 4px 0',
+    transform: 'scale(1.2)'
+  };
+
+  const componentCardStyle: React.CSSProperties = {
+    marginBottom: '20px',
+    padding: '20px',
+    border: '1px solid #475569',
+    borderRadius: '12px',
+    backgroundColor: '#3f4b5f',
+    transition: 'all 0.2s ease'
   };
 
   return (
-    <div>
-      <div style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-        <h2 style={{ margin: 0 }}>Accounts & Components ({accounts.length})</h2>
+    <div style={{ padding: '32px' }}>
+      <div style={{ 
+        marginBottom: '24px', 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: '16px'
+      }}>
+        <h2 style={{ 
+          margin: 0, 
+          color: '#f8fafc',
+          fontSize: '24px',
+          fontWeight: 600,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px'
+        }}>
+          🏦 Accounts & Components ({accounts.length})
+        </h2>
         <button
-          style={{ ...buttonStyle, backgroundColor: '#007bff', color: 'white' }}
+          style={primaryButtonStyle}
           onClick={() => setShowCreateForm(!showCreateForm)}
+          onMouseOver={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#2563eb'}
+          onMouseOut={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#3b82f6'}
         >
-          {showCreateForm ? 'Cancel' : 'Create Account'}
+          {showCreateForm ? '✕ Cancel' : '➕ Create Account'}
         </button>
       </div>
 
       {message && (
         <div style={{
-          padding: '10px',
-          marginBottom: '20px',
-          backgroundColor: message.includes('Error') ? '#f8d7da' : '#d4edda',
-          color: message.includes('Error') ? '#721c24' : '#155724',
-          border: `1px solid ${message.includes('Error') ? '#f5c6cb' : '#c3e6cb'}`,
-          borderRadius: '4px'
+          padding: '16px 20px',
+          marginBottom: '24px',
+          backgroundColor: message.includes('Error') ? '#7f1d1d' : '#064e3b',
+          color: message.includes('Error') ? '#fecaca' : '#a7f3d0',
+          border: `1px solid ${message.includes('Error') ? '#991b1b' : '#047857'}`,
+          borderRadius: '12px',
+          fontSize: '14px',
+          fontWeight: 500
         }}>
-          {message}
+          {message.includes('Error') ? '❌ ' : '✅ '}{message}
         </div>
       )}
 
       {showCreateForm && (
         <div style={{
-          padding: '20px',
-          marginBottom: '20px',
-          backgroundColor: '#f8f9fa',
-          border: '1px solid #dee2e6',
-          borderRadius: '4px'
+          padding: '32px',
+          marginBottom: '32px',
+          backgroundColor: '#334155',
+          border: '1px solid #475569',
+          borderRadius: '16px',
+          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.3)'
         }}>
-          <h3>Create New Account (ECS Architecture)</h3>
+          <h3 style={{ 
+            color: '#f8fafc', 
+            marginBottom: '24px',
+            fontSize: '20px',
+            fontWeight: 600
+          }}>
+            🏗️ Create New Account (ECS Architecture)
+          </h3>
           <form onSubmit={handleSubmit}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px' }}>
               <div>
-                <h4>Account Entity</h4>
-                <div>
-                  <label>User:</label>
+                <h4 style={{ 
+                  color: '#f8fafc', 
+                  marginBottom: '20px',
+                  fontSize: '18px',
+                  fontWeight: 600,
+                  borderBottom: '2px solid #475569',
+                  paddingBottom: '8px'
+                }}>
+                  📋 Account Entity
+                </h4>
+                <div style={{ marginBottom: '16px' }}>
+                  <label style={labelStyle}>User:</label>
                   <select
-                    style={inputStyle}
+                    style={selectStyle}
                     value={formData.userId}
                     onChange={(e) => setFormData({ ...formData, userId: e.target.value })}
                     required
+                    onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
+                    onBlur={(e) => e.target.style.borderColor = '#475569'}
                   >
                     <option value="">Select a user</option>
                     {users.filter(u => !u.isDeleted).map(user => (
@@ -220,21 +312,35 @@ export function AccountManager({ accounts, users, onRefresh }: AccountManagerPro
                     ))}
                   </select>
                 </div>
-                <div>
-                  <label>
-                    <input
-                      type="checkbox"
-                      style={checkboxStyle}
-                      checked={formData.isMain}
-                      onChange={(e) => setFormData({ ...formData, isMain: e.target.checked })}
-                    />
-                    Main Account
+                <div style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  marginBottom: '20px',
+                  padding: '12px',
+                  backgroundColor: '#475569',
+                  borderRadius: '8px'
+                }}>
+                  <input
+                    type="checkbox"
+                    style={checkboxStyle}
+                    checked={formData.isMain}
+                    onChange={(e) => setFormData({ ...formData, isMain: e.target.checked })}
+                  />
+                  <label style={{ color: '#f8fafc', fontWeight: 500 }}>
+                    🌟 Main Account
                   </label>
                 </div>
 
-                <h4>Core Details Component (Required)</h4>
-                <div>
-                  <label>Account Name:</label>
+                <h4 style={{ 
+                  color: '#f8fafc', 
+                  marginBottom: '16px',
+                  fontSize: '16px',
+                  fontWeight: 600
+                }}>
+                  🔧 Core Details Component (Required)
+                </h4>
+                <div style={{ marginBottom: '16px' }}>
+                  <label style={labelStyle}>Account Name:</label>
                   <input
                     type="text"
                     style={inputStyle}
@@ -245,10 +351,13 @@ export function AccountManager({ accounts, users, onRefresh }: AccountManagerPro
                     })}
                     required
                     maxLength={100}
+                    placeholder="Enter account name"
+                    onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
+                    onBlur={(e) => e.target.style.borderColor = '#475569'}
                   />
                 </div>
                 <div>
-                  <label>Balance:</label>
+                  <label style={labelStyle}>Initial Balance:</label>
                   <input
                     type="number"
                     step="0.01"
@@ -259,15 +368,31 @@ export function AccountManager({ accounts, users, onRefresh }: AccountManagerPro
                       coreDetails: { ...formData.coreDetails, balance: parseFloat(e.target.value) || 0 }
                     })}
                     required
+                    placeholder="0.00"
+                    onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
+                    onBlur={(e) => e.target.style.borderColor = '#475569'}
                   />
                 </div>
               </div>
 
               <div>
-                <h4>Optional Components</h4>
+                <h4 style={{ 
+                  color: '#f8fafc', 
+                  marginBottom: '20px',
+                  fontSize: '18px',
+                  fontWeight: 600,
+                  borderBottom: '2px solid #475569',
+                  paddingBottom: '8px'
+                }}>
+                  🧩 Optional Components
+                </h4>
                 
-                <div style={{ marginBottom: '15px', padding: '10px', border: '1px solid #ddd', borderRadius: '4px' }}>
-                  <label>
+                <div style={componentCardStyle}>
+                  <div style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    marginBottom: '16px'
+                  }}>
                     <input
                       type="checkbox"
                       style={checkboxStyle}
@@ -277,12 +402,14 @@ export function AccountManager({ accounts, users, onRefresh }: AccountManagerPro
                         activeAccount: { ...formData.activeAccount, enabled: e.target.checked }
                       })}
                     />
-                    <strong>Active Account Component</strong>
-                  </label>
+                    <label style={{ color: '#f8fafc', fontWeight: 600, fontSize: '16px' }}>
+                      🏧 Active Account Component
+                    </label>
+                  </div>
                   {formData.activeAccount.enabled && (
                     <input
                       type="text"
-                      placeholder="IBAN"
+                      placeholder="IBAN (e.g., TR123456789012345678901234)"
                       style={inputStyle}
                       value={formData.activeAccount.iban}
                       onChange={(e) => setFormData({
@@ -290,12 +417,18 @@ export function AccountManager({ accounts, users, onRefresh }: AccountManagerPro
                         activeAccount: { ...formData.activeAccount, iban: e.target.value }
                       })}
                       maxLength={34}
+                      onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
+                      onBlur={(e) => e.target.style.borderColor = '#475569'}
                     />
                   )}
                 </div>
 
-                <div style={{ marginBottom: '15px', padding: '10px', border: '1px solid #ddd', borderRadius: '4px' }}>
-                  <label>
+                <div style={componentCardStyle}>
+                  <div style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    marginBottom: '16px'
+                  }}>
                     <input
                       type="checkbox"
                       style={checkboxStyle}
@@ -305,8 +438,10 @@ export function AccountManager({ accounts, users, onRefresh }: AccountManagerPro
                         spendingLimit: { ...formData.spendingLimit, enabled: e.target.checked }
                       })}
                     />
-                    <strong>Spending Limit Component</strong>
-                  </label>
+                    <label style={{ color: '#f8fafc', fontWeight: 600, fontSize: '16px' }}>
+                      💸 Spending Limit Component
+                    </label>
+                  </div>
                   {formData.spendingLimit.enabled && (
                     <>
                       <input
@@ -319,14 +454,18 @@ export function AccountManager({ accounts, users, onRefresh }: AccountManagerPro
                           ...formData,
                           spendingLimit: { ...formData.spendingLimit, limitAmount: parseFloat(e.target.value) || 0 }
                         })}
+                        onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
+                        onBlur={(e) => e.target.style.borderColor = '#475569'}
                       />
                       <select
-                        style={inputStyle}
+                        style={selectStyle}
                         value={formData.spendingLimit.timeframe}
                         onChange={(e) => setFormData({
                           ...formData,
                           spendingLimit: { ...formData.spendingLimit, timeframe: parseInt(e.target.value) }
                         })}
+                        onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
+                        onBlur={(e) => e.target.style.borderColor = '#475569'}
                       >
                         {timeframeLabels.map((label, index) => (
                           <option key={index} value={index}>{label}</option>
@@ -336,8 +475,12 @@ export function AccountManager({ accounts, users, onRefresh }: AccountManagerPro
                   )}
                 </div>
 
-                <div style={{ marginBottom: '15px', padding: '10px', border: '1px solid #ddd', borderRadius: '4px' }}>
-                  <label>
+                <div style={componentCardStyle}>
+                  <div style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    marginBottom: '16px'
+                  }}>
                     <input
                       type="checkbox"
                       style={checkboxStyle}
@@ -347,13 +490,15 @@ export function AccountManager({ accounts, users, onRefresh }: AccountManagerPro
                         savingGoal: { ...formData.savingGoal, enabled: e.target.checked }
                       })}
                     />
-                    <strong>Saving Goal Component</strong>
-                  </label>
+                    <label style={{ color: '#f8fafc', fontWeight: 600, fontSize: '16px' }}>
+                      🎯 Saving Goal Component
+                    </label>
+                  </div>
                   {formData.savingGoal.enabled && (
                     <>
                       <input
                         type="text"
-                        placeholder="Goal Name"
+                        placeholder="Goal Name (e.g., Vacation Fund)"
                         style={inputStyle}
                         value={formData.savingGoal.goalName}
                         onChange={(e) => setFormData({
@@ -361,6 +506,8 @@ export function AccountManager({ accounts, users, onRefresh }: AccountManagerPro
                           savingGoal: { ...formData.savingGoal, goalName: e.target.value }
                         })}
                         maxLength={200}
+                        onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
+                        onBlur={(e) => e.target.style.borderColor = '#475569'}
                       />
                       <input
                         type="number"
@@ -372,6 +519,8 @@ export function AccountManager({ accounts, users, onRefresh }: AccountManagerPro
                           ...formData,
                           savingGoal: { ...formData.savingGoal, targetAmount: parseFloat(e.target.value) || 0 }
                         })}
+                        onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
+                        onBlur={(e) => e.target.style.borderColor = '#475569'}
                       />
                     </>
                   )}
@@ -381,107 +530,260 @@ export function AccountManager({ accounts, users, onRefresh }: AccountManagerPro
 
             <button
               type="submit"
-              style={{ ...buttonStyle, backgroundColor: '#28a745', color: 'white' }}
+              style={{
+                ...successButtonStyle,
+                marginTop: '24px',
+                padding: '12px 24px',
+                fontSize: '16px'
+              }}
               disabled={loading}
+              onMouseOver={(e) => !loading && ((e.target as HTMLButtonElement).style.backgroundColor = '#059669')}
+              onMouseOut={(e) => !loading && ((e.target as HTMLButtonElement).style.backgroundColor = '#10b981')}
             >
-              {loading ? 'Creating...' : 'Create Account'}
+              {loading ? '⏳ Creating...' : '✅ Create Account'}
             </button>
           </form>
         </div>
       )}
 
-      <div style={{ overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #dee2e6' }}>
+      <div style={{ 
+        overflowX: 'auto',
+        borderRadius: '12px',
+        border: '1px solid #475569',
+        backgroundColor: '#334155'
+      }}>
+        <table style={{ 
+          width: '100%', 
+          borderCollapse: 'collapse'
+        }}>
           <thead>
-            <tr style={{ backgroundColor: '#f8f9fa' }}>
-              <th style={{ padding: '12px', textAlign: 'left', border: '1px solid #dee2e6' }}>ID</th>
-              <th style={{ padding: '12px', textAlign: 'left', border: '1px solid #dee2e6' }}>User</th>
-              <th style={{ padding: '12px', textAlign: 'left', border: '1px solid #dee2e6' }}>Name</th>
-              <th style={{ padding: '12px', textAlign: 'left', border: '1px solid #dee2e6' }}>Balance</th>
-              <th style={{ padding: '12px', textAlign: 'left', border: '1px solid #dee2e6' }}>Components</th>
-              <th style={{ padding: '12px', textAlign: 'left', border: '1px solid #dee2e6' }}>Status</th>
-              <th style={{ padding: '12px', textAlign: 'left', border: '1px solid #dee2e6' }}>Actions</th>
+            <tr style={{ 
+              backgroundColor: '#475569',
+              borderBottom: '1px solid #64748b'
+            }}>
+              <th style={{ 
+                padding: '16px 20px', 
+                textAlign: 'left', 
+                color: '#f8fafc',
+                fontSize: '14px',
+                fontWeight: 600,
+                borderRight: '1px solid #64748b'
+              }}>ID</th>
+              <th style={{ 
+                padding: '16px 20px', 
+                textAlign: 'left', 
+                color: '#f8fafc',
+                fontSize: '14px',
+                fontWeight: 600,
+                borderRight: '1px solid #64748b'
+              }}>User</th>
+              <th style={{ 
+                padding: '16px 20px', 
+                textAlign: 'left', 
+                color: '#f8fafc',
+                fontSize: '14px',
+                fontWeight: 600,
+                borderRight: '1px solid #64748b'
+              }}>Name</th>
+              <th style={{ 
+                padding: '16px 20px', 
+                textAlign: 'left', 
+                color: '#f8fafc',
+                fontSize: '14px',
+                fontWeight: 600,
+                borderRight: '1px solid #64748b'
+              }}>Balance</th>
+              <th style={{ 
+                padding: '16px 20px', 
+                textAlign: 'left', 
+                color: '#f8fafc',
+                fontSize: '14px',
+                fontWeight: 600,
+                borderRight: '1px solid #64748b'
+              }}>Components</th>
+              <th style={{ 
+                padding: '16px 20px', 
+                textAlign: 'left', 
+                color: '#f8fafc',
+                fontSize: '14px',
+                fontWeight: 600,
+                borderRight: '1px solid #64748b'
+              }}>Status</th>
+              <th style={{ 
+                padding: '16px 20px', 
+                textAlign: 'left', 
+                color: '#f8fafc',
+                fontSize: '14px',
+                fontWeight: 600
+              }}>Actions</th>
             </tr>
           </thead>
           <tbody>
             {accounts.length === 0 ? (
               <tr>
-                <td colSpan={7} style={{ padding: '20px', textAlign: 'center', color: '#666' }}>
-                  No accounts found. Create your first account!
+                <td colSpan={7} style={{ 
+                  padding: '40px 20px', 
+                  textAlign: 'center', 
+                  color: '#94a3b8',
+                  fontSize: '16px',
+                  fontStyle: 'italic'
+                }}>
+                  🏦 No accounts found. Create your first account!
                 </td>
               </tr>
             ) : (
-              accounts.map((account) => {
+              accounts.map((account, index) => {
                 const user = users.find(u => u.id === account.userId);
                 const components = [];
                 if (account.coreDetails) components.push('Core');
                 if (account.activeAccount) components.push('Active');
                 if (account.spendingLimit) components.push('Spending');
                 if (account.savingGoal) components.push('Saving');
+                const isEven = index % 2 === 0;
 
                 return (
-                  <tr key={account.id}>
-                    <td style={{ padding: '12px', border: '1px solid #dee2e6', fontFamily: 'monospace', fontSize: '12px' }}>
+                  <tr key={account.id} style={{
+                    backgroundColor: isEven ? '#334155' : '#3f4b5f',
+                    borderBottom: '1px solid #475569'
+                  }}>
+                    <td style={{ 
+                      padding: '16px 20px', 
+                      borderRight: '1px solid #475569',
+                      fontFamily: 'Monaco, Consolas, monospace', 
+                      fontSize: '12px',
+                      color: '#94a3b8'
+                    }}>
                       {account.id.substring(0, 8)}...
                     </td>
-                    <td style={{ padding: '12px', border: '1px solid #dee2e6' }}>
+                    <td style={{ 
+                      padding: '16px 20px', 
+                      borderRight: '1px solid #475569',
+                      color: '#f8fafc'
+                    }}>
                       {user ? (
-                        <span>
-                          {user.username}
+                        <div>
+                          <span style={{ fontWeight: 500 }}>{user.username}</span>
                           {user.isDeleted && (
                             <span style={{ 
-                              color: '#dc3545', 
+                              color: '#ef4444', 
                               fontSize: '11px', 
                               marginLeft: '4px',
-                              fontStyle: 'italic'
+                              fontStyle: 'italic',
+                              backgroundColor: '#7f1d1d',
+                              padding: '2px 4px',
+                              borderRadius: '4px'
                             }}>
-                              (deleted)
+                              deleted
                             </span>
                           )}
-                        </span>
-                      ) : 'Unknown'}
+                        </div>
+                      ) : (
+                        <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>Unknown</span>
+                      )}
                     </td>
-                    <td style={{ padding: '12px', border: '1px solid #dee2e6' }}>
-                      {account.coreDetails?.name || 'No name'}
-                      {account.isMain && <span style={{ color: '#007bff', fontSize: '12px' }}> (Default)</span>}
+                    <td style={{ 
+                      padding: '16px 20px', 
+                      borderRight: '1px solid #475569',
+                      color: '#e2e8f0'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span>{account.coreDetails?.name || 'No name'}</span>
+                        {account.isMain && (
+                          <span style={{ 
+                            color: '#3b82f6', 
+                            fontSize: '12px',
+                            backgroundColor: '#1e3a8a',
+                            padding: '2px 6px',
+                            borderRadius: '4px',
+                            fontWeight: 500
+                          }}>
+                            🌟 Main
+                          </span>
+                        )}
+                      </div>
                     </td>
-                    <td style={{ padding: '12px', border: '1px solid #dee2e6' }}>
-                      {account.coreDetails ? `$${account.coreDetails.balance.toFixed(2)}` : 'N/A'}
-                    </td>
-                    <td style={{ padding: '12px', border: '1px solid #dee2e6' }}>
-                      {components.map(comp => (
-                        <span key={comp} style={{
-                          display: 'inline-block',
-                          padding: '2px 6px',
-                          margin: '1px',
-                          backgroundColor: '#e9ecef',
-                          borderRadius: '3px',
-                          fontSize: '11px'
+                    <td style={{ 
+                      padding: '16px 20px', 
+                      borderRight: '1px solid #475569'
+                    }}>
+                      {account.coreDetails ? (
+                        <span style={{ 
+                          fontWeight: 600,
+                          fontSize: '15px',
+                          color: account.coreDetails.balance >= 0 ? '#10b981' : '#ef4444'
                         }}>
-                          {comp}
+                          ${account.coreDetails.balance.toFixed(2)}
                         </span>
-                      ))}
+                      ) : (
+                        <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>N/A</span>
+                      )}
                     </td>
-                    <td style={{ padding: '12px', border: '1px solid #dee2e6' }}>
+                    <td style={{ 
+                      padding: '16px 20px', 
+                      borderRight: '1px solid #475569'
+                    }}>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                        {components.map(comp => (
+                          <span key={comp} style={{
+                            display: 'inline-block',
+                            padding: '4px 8px',
+                            backgroundColor: '#475569',
+                            borderRadius: '6px',
+                            fontSize: '11px',
+                            color: '#e2e8f0',
+                            fontWeight: 500
+                          }}>
+                            {comp === 'Core' && '🔧'} 
+                            {comp === 'Active' && '🏧'} 
+                            {comp === 'Spending' && '💸'} 
+                            {comp === 'Saving' && '🎯'} 
+                            {comp}
+                          </span>
+                        ))}
+                      </div>
+                    </td>
+                    <td style={{ 
+                      padding: '16px 20px', 
+                      borderRight: '1px solid #475569'
+                    }}>
                       <span style={{
-                        padding: '4px 8px',
-                        borderRadius: '4px',
+                        padding: '6px 12px',
+                        borderRadius: '6px',
                         fontSize: '12px',
-                        backgroundColor: account.isDeleted ? '#f8d7da' : '#d4edda',
-                        color: account.isDeleted ? '#721c24' : '#155724'
+                        fontWeight: 500,
+                        backgroundColor: account.isDeleted ? '#7f1d1d' : '#064e3b',
+                        color: account.isDeleted ? '#fecaca' : '#a7f3d0'
                       }}>
-                        {account.isDeleted ? 'Deleted' : 'Active'}
+                        {account.isDeleted ? '🗑️ Deleted' : '✅ Active'}
                       </span>
                     </td>
-                    <td style={{ padding: '12px', border: '1px solid #dee2e6' }}>
-                      {!account.isDeleted && !account.isMain && (
+                    <td style={{ padding: '16px 20px' }}>
+                      {!account.isDeleted && !account.isMain ? (
                         <button
-                          style={{ ...buttonStyle, backgroundColor: '#dc3545', color: 'white' }}
+                          style={dangerButtonStyle}
                           onClick={() => handleDelete(account.id)}
                           disabled={loading}
+                          onMouseOver={(e) => !loading && ((e.target as HTMLButtonElement).style.backgroundColor = '#dc2626')}
+                          onMouseOut={(e) => !loading && ((e.target as HTMLButtonElement).style.backgroundColor = '#ef4444')}
                         >
-                          Delete
+                          🗑️ Delete
                         </button>
+                      ) : account.isMain ? (
+                        <span style={{ 
+                          color: '#94a3b8', 
+                          fontStyle: 'italic',
+                          fontSize: '12px'
+                        }}>
+                          🔒 Protected (Main)
+                        </span>
+                      ) : (
+                        <span style={{ 
+                          color: '#94a3b8', 
+                          fontStyle: 'italic',
+                          fontSize: '12px'
+                        }}>
+                          Already deleted
+                        </span>
                       )}
                     </td>
                   </tr>

@@ -122,78 +122,236 @@ export function AdminPage() {
     refreshData();
   }, []);
 
-  const tabStyle = (isActive: boolean) => ({
-    padding: '10px 20px',
-    backgroundColor: isActive ? '#007bff' : '#f8f9fa',
-    color: isActive ? 'white' : '#333',
-    border: '1px solid #dee2e6',
+  const tabStyle = (isActive: boolean): React.CSSProperties => ({
+    padding: '14px 24px',
+    backgroundColor: isActive ? '#3b82f6' : 'transparent',
+    color: isActive ? '#ffffff' : '#94a3b8',
+    border: 'none',
     cursor: 'pointer',
-    borderBottom: isActive ? '1px solid #007bff' : '1px solid #dee2e6'
+    borderRadius: '8px',
+    fontSize: '14px',
+    fontWeight: 500,
+    transition: 'all 0.2s ease',
+    marginRight: '8px'
   });
 
+  const buttonStyle = {
+    padding: '12px 20px',
+    border: 'none',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    fontSize: '14px',
+    fontWeight: 500,
+    transition: 'all 0.2s ease',
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '8px'
+  } as React.CSSProperties;
+
+  const primaryButtonStyle = {
+    ...buttonStyle,
+    backgroundColor: '#10b981',
+    color: '#ffffff',
+    boxShadow: '0 4px 6px -1px rgba(16, 185, 129, 0.3)'
+  };
+
+  const dangerButtonStyle = {
+    ...buttonStyle,
+    backgroundColor: '#ef4444',
+    color: '#ffffff',
+    boxShadow: '0 4px 6px -1px rgba(239, 68, 68, 0.3)'
+  };
+
   return (
-    <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
-      <h1 style={{ color: '#333', marginBottom: '30px' }}>Database Testing Interface</h1>
-      
-      <div style={{ marginBottom: '20px' }}>
-        <button onClick={refreshData} style={{
-          padding: '10px 20px',
-          backgroundColor: '#28a745',
-          color: 'white',
-          border: 'none',
-          borderRadius: '4px',
-          cursor: 'pointer',
-          marginRight: '10px'
+    <div style={{ 
+      minHeight: '100vh',
+      backgroundColor: '#0f172a',
+      color: '#e2e8f0',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
+    }}>
+      {/* Header */}
+      <div style={{
+        background: 'linear-gradient(135deg, #1e293b 0%, #334155 100%)',
+        padding: '32px',
+        borderBottom: '1px solid #334155'
+      }}>
+        <h1 style={{ 
+          color: '#f8fafc', 
+          marginBottom: '8px',
+          fontSize: '32px',
+          fontWeight: 700,
+          background: 'linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          backgroundClip: 'text'
         }}>
-          Refresh All Data
-        </button>
-        <button onClick={resetDatabase} style={{
-          padding: '10px 20px',
-          backgroundColor: '#dc3545',
-          color: 'white',
-          border: 'none',
-          borderRadius: '4px',
-          cursor: 'pointer',
-          marginRight: '10px'
+          Database Administration
+        </h1>
+        <p style={{ 
+          color: '#94a3b8', 
+          margin: 0,
+          fontSize: '16px'
         }}>
-          Reset Database
-        </button>
-        <span style={{ color: '#666' }}>
-          Users: {users.length} | Accounts: {accounts.length} | Transactions: {transactions.length}
-        </span>
+          Manage users, accounts, and transactions
+        </p>
       </div>
 
-      <div style={{ display: 'flex', borderBottom: '1px solid #dee2e6', marginBottom: '20px' }}>
-        <button
-          style={tabStyle(activeTab === 'users')}
-          onClick={() => setActiveTab('users')}
-        >
-          Users
-        </button>
-        <button
-          style={tabStyle(activeTab === 'accounts')}
-          onClick={() => setActiveTab('accounts')}
-        >
-          Accounts & Components
-        </button>
-        <button
-          style={tabStyle(activeTab === 'transactions')}
-          onClick={() => setActiveTab('transactions')}
-        >
-          Transactions
-        </button>
-      </div>
+      {/* Main Content */}
+      <div style={{ padding: '32px' }}>
+        {/* Action Bar */}
+        <div style={{ 
+          marginBottom: '32px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '16px'
+        }}>
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <button 
+              onClick={refreshData} 
+              style={primaryButtonStyle}
+              onMouseOver={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#059669'}
+              onMouseOut={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#10b981'}
+            >
+              <span>🔄</span>
+              Refresh All Data
+            </button>
+            <button 
+              onClick={resetDatabase} 
+              style={dangerButtonStyle}
+              onMouseOver={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#dc2626'}
+              onMouseOut={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#ef4444'}
+            >
+              <span>⚠️</span>
+              Reset Database
+            </button>
+          </div>
+          
+          <div style={{ 
+            display: 'flex',
+            alignItems: 'center',
+            gap: '24px',
+            backgroundColor: '#1e293b',
+            padding: '12px 20px',
+            borderRadius: '12px',
+            border: '1px solid #334155'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ 
+                width: '8px', 
+                height: '8px', 
+                backgroundColor: '#3b82f6', 
+                borderRadius: '50%' 
+              }}></div>
+              <span style={{ color: '#94a3b8', fontSize: '14px' }}>Users: </span>
+              <span style={{ color: '#f8fafc', fontWeight: 600 }}>{users.length}</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ 
+                width: '8px', 
+                height: '8px', 
+                backgroundColor: '#10b981', 
+                borderRadius: '50%' 
+              }}></div>
+              <span style={{ color: '#94a3b8', fontSize: '14px' }}>Accounts: </span>
+              <span style={{ color: '#f8fafc', fontWeight: 600 }}>{accounts.length}</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ 
+                width: '8px', 
+                height: '8px', 
+                backgroundColor: '#f59e0b', 
+                borderRadius: '50%' 
+              }}></div>
+              <span style={{ color: '#94a3b8', fontSize: '14px' }}>Transactions: </span>
+              <span style={{ color: '#f8fafc', fontWeight: 600 }}>{transactions.length}</span>
+            </div>
+          </div>
+        </div>
 
-      <div>
-        {activeTab === 'users' && (
-          <UserManager users={users} onRefresh={refreshData} />
-        )}
-        {activeTab === 'accounts' && (
-          <AccountManager accounts={accounts} users={users} onRefresh={refreshData} />
-        )}
-        {activeTab === 'transactions' && (
-          <TransactionManager transactions={transactions} accounts={accounts} users={users} onRefresh={refreshData} />
-        )}
+        {/* Tabs */}
+        <div style={{ 
+          display: 'flex', 
+          marginBottom: '32px',
+          backgroundColor: '#1e293b',
+          padding: '8px',
+          borderRadius: '12px',
+          border: '1px solid #334155'
+        }}>
+          <button
+            style={tabStyle(activeTab === 'users')}
+            onClick={() => setActiveTab('users')}
+            onMouseOver={(e) => {
+              if (activeTab !== 'users') {
+                (e.target as HTMLButtonElement).style.backgroundColor = '#374151';
+                (e.target as HTMLButtonElement).style.color = '#ffffff';
+              }
+            }}
+            onMouseOut={(e) => {
+              if (activeTab !== 'users') {
+                (e.target as HTMLButtonElement).style.backgroundColor = 'transparent';
+                (e.target as HTMLButtonElement).style.color = '#94a3b8';
+              }
+            }}
+          >
+            👥 Users
+          </button>
+          <button
+            style={tabStyle(activeTab === 'accounts')}
+            onClick={() => setActiveTab('accounts')}
+            onMouseOver={(e) => {
+              if (activeTab !== 'accounts') {
+                (e.target as HTMLButtonElement).style.backgroundColor = '#374151';
+                (e.target as HTMLButtonElement).style.color = '#ffffff';
+              }
+            }}
+            onMouseOut={(e) => {
+              if (activeTab !== 'accounts') {
+                (e.target as HTMLButtonElement).style.backgroundColor = 'transparent';
+                (e.target as HTMLButtonElement).style.color = '#94a3b8';
+              }
+            }}
+          >
+            🏦 Accounts & Components
+          </button>
+          <button
+            style={tabStyle(activeTab === 'transactions')}
+            onClick={() => setActiveTab('transactions')}
+            onMouseOver={(e) => {
+              if (activeTab !== 'transactions') {
+                (e.target as HTMLButtonElement).style.backgroundColor = '#374151';
+                (e.target as HTMLButtonElement).style.color = '#ffffff';
+              }
+            }}
+            onMouseOut={(e) => {
+              if (activeTab !== 'transactions') {
+                (e.target as HTMLButtonElement).style.backgroundColor = 'transparent';
+                (e.target as HTMLButtonElement).style.color = '#94a3b8';
+              }
+            }}
+          >
+            💳 Transactions
+          </button>
+        </div>
+
+        {/* Tab Content */}
+        <div style={{
+          backgroundColor: '#1e293b',
+          borderRadius: '16px',
+          border: '1px solid #334155',
+          overflow: 'hidden'
+        }}>
+          {activeTab === 'users' && (
+            <UserManager users={users} onRefresh={refreshData} />
+          )}
+          {activeTab === 'accounts' && (
+            <AccountManager accounts={accounts} users={users} onRefresh={refreshData} />
+          )}
+          {activeTab === 'transactions' && (
+            <TransactionManager transactions={transactions} accounts={accounts} users={users} onRefresh={refreshData} />
+          )}
+        </div>
       </div>
     </div>
   );
