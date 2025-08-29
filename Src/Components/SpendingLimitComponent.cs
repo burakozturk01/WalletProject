@@ -11,7 +11,7 @@ namespace Src.Components
         DAILY,
         WEEKLY,
         MONTHLY,
-        YEARLY
+        YEARLY,
     }
 
     public class SpendingLimitComponent : IDeletableComponent
