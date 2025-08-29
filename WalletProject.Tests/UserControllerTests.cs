@@ -33,7 +33,7 @@ namespace WalletProject.Tests
                 {
                     Username = "testuser",
                     Email = "testuser@example.com",
-                    Password = "password"
+                    Password = "password",
                 };
 
                 var content = Utilities.GetStringContent(user);
@@ -53,7 +53,7 @@ namespace WalletProject.Tests
                 {
                     Username = "testuser2",
                     Email = "testuser2@example.com",
-                    Password = "password"
+                    Password = "password",
                 };
 
                 var content = Utilities.GetStringContent(user);
@@ -63,7 +63,7 @@ namespace WalletProject.Tests
                 {
                     Username = "testuser2",
                     Email = "testuser3@example.com",
-                    Password = "password"
+                    Password = "password",
                 };
 
                 var content2 = Utilities.GetStringContent(user2);
@@ -79,7 +79,7 @@ namespace WalletProject.Tests
                 {
                     Username = "testuser4",
                     Email = "testuser4@example.com",
-                    Password = "password"
+                    Password = "password",
                 };
 
                 var content = Utilities.GetStringContent(user);
@@ -89,7 +89,7 @@ namespace WalletProject.Tests
                 {
                     Username = "testuser5",
                     Email = "testuser4@example.com",
-                    Password = "password"
+                    Password = "password",
                 };
 
                 var content2 = Utilities.GetStringContent(user2);
@@ -105,7 +105,7 @@ namespace WalletProject.Tests
                 {
                     Username = "testuser_invalid_email",
                     Email = "invalid-email",
-                    Password = "password123"
+                    Password = "password123",
                 };
 
                 var content = Utilities.GetStringContent(user);
@@ -121,7 +121,7 @@ namespace WalletProject.Tests
                 {
                     Username = "testuser_short_pass",
                     Email = "testuser_short_pass@example.com",
-                    Password = "123"
+                    Password = "123",
                 };
 
                 var content = Utilities.GetStringContent(user);
@@ -147,7 +147,7 @@ namespace WalletProject.Tests
                 {
                     Username = "testuser6",
                     Email = "testuser6@example.com",
-                    Password = "password"
+                    Password = "password",
                 };
 
                 var content = Utilities.GetStringContent(user);
@@ -185,22 +185,24 @@ namespace WalletProject.Tests
                 {
                     Username = "testuser7",
                     Email = "testuser7@example.com",
-                    Password = "password"
+                    Password = "password",
                 };
 
                 var content = Utilities.GetStringContent(user);
                 var response = await _client.PostAsync("/api/user", content);
                 var createdUser = await Utilities.GetDeserializedContent<UserReadDTO>(response);
 
-                var updateUser = new UserUpdateDTO
-                {
-                    Username = "updateduser"
-                };
+                var updateUser = new UserUpdateDTO { Username = "updateduser" };
 
                 var updateContent = Utilities.GetStringContent(updateUser);
-                var updateResponse = await _client.PutAsync($"/api/user/{createdUser.Id}", updateContent);
+                var updateResponse = await _client.PutAsync(
+                    $"/api/user/{createdUser.Id}",
+                    updateContent
+                );
                 updateResponse.EnsureSuccessStatusCode();
-                var updatedUser = await Utilities.GetDeserializedContent<UserReadDTO>(updateResponse);
+                var updatedUser = await Utilities.GetDeserializedContent<UserReadDTO>(
+                    updateResponse
+                );
 
                 Assert.Equal(updateUser.Username, updatedUser.Username);
             }
@@ -212,7 +214,7 @@ namespace WalletProject.Tests
                 {
                     Username = "testuser_update1",
                     Email = "testuser_update1@example.com",
-                    Password = "password"
+                    Password = "password",
                 };
 
                 var content1 = Utilities.GetStringContent(user1);
@@ -222,20 +224,20 @@ namespace WalletProject.Tests
                 {
                     Username = "testuser_update2",
                     Email = "testuser_update2@example.com",
-                    Password = "password"
+                    Password = "password",
                 };
 
                 var content2 = Utilities.GetStringContent(user2);
                 var response2 = await _client.PostAsync("/api/user", content2);
                 var createdUser2 = await Utilities.GetDeserializedContent<UserReadDTO>(response2);
 
-                var updateUser = new UserUpdateDTO
-                {
-                    Email = "testuser_update1@example.com"
-                };
+                var updateUser = new UserUpdateDTO { Email = "testuser_update1@example.com" };
 
                 var updateContent = Utilities.GetStringContent(updateUser);
-                var updateResponse = await _client.PutAsync($"/api/user/{createdUser2.Id}", updateContent);
+                var updateResponse = await _client.PutAsync(
+                    $"/api/user/{createdUser2.Id}",
+                    updateContent
+                );
 
                 Assert.Equal(HttpStatusCode.BadRequest, updateResponse.StatusCode);
             }
@@ -247,7 +249,7 @@ namespace WalletProject.Tests
                 {
                     Username = "testuser_update3",
                     Email = "testuser_update3@example.com",
-                    Password = "password"
+                    Password = "password",
                 };
 
                 var content1 = Utilities.GetStringContent(user1);
@@ -257,20 +259,20 @@ namespace WalletProject.Tests
                 {
                     Username = "testuser_update4",
                     Email = "testuser_update4@example.com",
-                    Password = "password"
+                    Password = "password",
                 };
 
                 var content2 = Utilities.GetStringContent(user2);
                 var response2 = await _client.PostAsync("/api/user", content2);
                 var createdUser2 = await Utilities.GetDeserializedContent<UserReadDTO>(response2);
 
-                var updateUser = new UserUpdateDTO
-                {
-                    Username = "testuser_update3"
-                };
+                var updateUser = new UserUpdateDTO { Username = "testuser_update3" };
 
                 var updateContent = Utilities.GetStringContent(updateUser);
-                var updateResponse = await _client.PutAsync($"/api/user/{createdUser2.Id}", updateContent);
+                var updateResponse = await _client.PutAsync(
+                    $"/api/user/{createdUser2.Id}",
+                    updateContent
+                );
 
                 Assert.Equal(HttpStatusCode.BadRequest, updateResponse.StatusCode);
             }
@@ -292,7 +294,7 @@ namespace WalletProject.Tests
                 {
                     Username = "testuser8",
                     Email = "testuser8@example.com",
-                    Password = "password"
+                    Password = "password",
                 };
 
                 var content = Utilities.GetStringContent(user);
@@ -313,7 +315,7 @@ namespace WalletProject.Tests
                 {
                     Username = "testuser9",
                     Email = "testuser9@example.com",
-                    Password = "password"
+                    Password = "password",
                 };
 
                 var content = Utilities.GetStringContent(user);
@@ -324,11 +326,7 @@ namespace WalletProject.Tests
                 {
                     UserId = createdUser.Id,
                     IsMain = false,
-                    CoreDetails = new CoreDetailsCreateDTO
-                    {
-                        Name = "Savings",
-                        Balance = 100
-                    }
+                    CoreDetails = new CoreDetailsCreateDTO { Name = "Savings", Balance = 100 },
                 };
 
                 var accountContent = Utilities.GetStringContent(account);
@@ -345,27 +343,29 @@ namespace WalletProject.Tests
                 {
                     Username = "testuser_transaction_history",
                     Email = "testuser_transaction_history@example.com",
-                    Password = "password"
+                    Password = "password",
                 };
 
                 var content = Utilities.GetStringContent(user);
                 var response = await _client.PostAsync("/api/user", content);
                 var createdUser = await Utilities.GetDeserializedContent<UserReadDTO>(response);
 
-                                var account1 = new AccountCreateDTO
+                var account1 = new AccountCreateDTO
                 {
                     UserId = createdUser.Id,
                     IsMain = false,
                     CoreDetails = new CoreDetailsCreateDTO
                     {
                         Name = "Source Account",
-                        Balance = 100
-                    }
+                        Balance = 100,
+                    },
                 };
 
                 var accountContent1 = Utilities.GetStringContent(account1);
                 var response1 = await _client.PostAsync("/api/account", accountContent1);
-                var createdAccount1 = await Utilities.GetDeserializedContent<AccountReadDTO>(response1);
+                var createdAccount1 = await Utilities.GetDeserializedContent<AccountReadDTO>(
+                    response1
+                );
 
                 var account2 = new AccountCreateDTO
                 {
@@ -374,40 +374,42 @@ namespace WalletProject.Tests
                     CoreDetails = new CoreDetailsCreateDTO
                     {
                         Name = "Destination Account",
-                        Balance = 0
-                    }
+                        Balance = 0,
+                    },
                 };
 
                 var accountContent2 = Utilities.GetStringContent(account2);
                 var response2 = await _client.PostAsync("/api/account", accountContent2);
-                var createdAccount2 = await Utilities.GetDeserializedContent<AccountReadDTO>(response2);
+                var createdAccount2 = await Utilities.GetDeserializedContent<AccountReadDTO>(
+                    response2
+                );
 
-                                var transaction = new TransactionCreateDTO
+                var transaction = new TransactionCreateDTO
                 {
                     SourceType = Src.Entities.SourceType.ACCOUNT,
                     SourceAccountId = createdAccount1.Id,
                     DestinationType = Src.Entities.DestinationType.ACCOUNT,
                     DestinationAccountId = createdAccount2.Id,
                     Amount = 100,
-                    Description = "Transfer all funds"
+                    Description = "Transfer all funds",
                 };
 
                 var transactionContent = Utilities.GetStringContent(transaction);
                 await _client.PostAsync("/api/transaction", transactionContent);
 
-                                var transaction2 = new TransactionCreateDTO
+                var transaction2 = new TransactionCreateDTO
                 {
                     SourceType = Src.Entities.SourceType.ACCOUNT,
                     SourceAccountId = createdAccount2.Id,
                     DestinationType = Src.Entities.DestinationType.SPEND,
                     Amount = 100,
-                    Description = "Spend all funds"
+                    Description = "Spend all funds",
                 };
 
                 var transactionContent2 = Utilities.GetStringContent(transaction2);
                 await _client.PostAsync("/api/transaction", transactionContent2);
 
-                                var deleteResponse = await _client.DeleteAsync($"/api/user/{createdUser.Id}");
+                var deleteResponse = await _client.DeleteAsync($"/api/user/{createdUser.Id}");
                 deleteResponse.EnsureSuccessStatusCode();
 
                 var getResponse = await _client.GetAsync($"/api/user/{createdUser.Id}");
@@ -431,22 +433,18 @@ namespace WalletProject.Tests
                 {
                     Username = "testuser_balance",
                     Email = "testuser_balance@example.com",
-                    Password = "password"
+                    Password = "password",
                 };
 
                 var content = Utilities.GetStringContent(user);
                 var response = await _client.PostAsync("/api/user", content);
                 var createdUser = await Utilities.GetDeserializedContent<UserReadDTO>(response);
 
-                                var account1 = new AccountCreateDTO
+                var account1 = new AccountCreateDTO
                 {
                     UserId = createdUser.Id,
                     IsMain = false,
-                    CoreDetails = new CoreDetailsCreateDTO
-                    {
-                        Name = "Savings",
-                        Balance = 500
-                    }
+                    CoreDetails = new CoreDetailsCreateDTO { Name = "Savings", Balance = 500 },
                 };
 
                 var accountContent1 = Utilities.GetStringContent(account1);
@@ -456,22 +454,22 @@ namespace WalletProject.Tests
                 {
                     UserId = createdUser.Id,
                     IsMain = false,
-                    CoreDetails = new CoreDetailsCreateDTO
-                    {
-                        Name = "Checking",
-                        Balance = 250.50m
-                    }
+                    CoreDetails = new CoreDetailsCreateDTO { Name = "Checking", Balance = 250.50m },
                 };
 
                 var accountContent2 = Utilities.GetStringContent(account2);
                 await _client.PostAsync("/api/account", accountContent2);
 
-                                var balanceResponse = await _client.GetAsync($"/api/user/{createdUser.Id}/total-balance");
+                var balanceResponse = await _client.GetAsync(
+                    $"/api/user/{createdUser.Id}/total-balance"
+                );
                 balanceResponse.EnsureSuccessStatusCode();
-                var balanceData = await Utilities.GetDeserializedContent<UserTotalBalanceDTO>(balanceResponse);
+                var balanceData = await Utilities.GetDeserializedContent<UserTotalBalanceDTO>(
+                    balanceResponse
+                );
 
                 Assert.Equal(750.50m, balanceData.TotalBalance);
-                Assert.Equal(3, balanceData.AccountCount); 
+                Assert.Equal(3, balanceData.AccountCount);
                 Assert.Equal(3, balanceData.ActiveAccountCount);
             }
         }

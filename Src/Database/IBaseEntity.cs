@@ -2,7 +2,7 @@ using System;
 
 namespace Src.Database
 {
-    public interface IBaseEntity 
+    public interface IBaseEntity
     {
         Guid Id { get; set; }
         DateTime CreatedAt { get; set; }

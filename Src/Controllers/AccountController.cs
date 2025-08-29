@@ -7,14 +7,14 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Src.Entities;
 using Src.Components;
+using Src.Database;
+using Src.Entities;
+using Src.Repositories;
+using Src.Services;
 using Src.Shared.Controller;
 using Src.Shared.DTO;
 using Src.Shared.Repository;
-using Src.Database;
-using Src.Repositories;
-using Src.Services;
 
 namespace Src.Controllers
 {
@@ -27,7 +27,7 @@ namespace Src.Controllers
         public DateTime UpdatedAt { get; set; }
         public bool IsDeleted { get; set; }
         public DateTime? DeletedAt { get; set; }
-        
+
         public CoreDetailsReadDTO? CoreDetails { get; set; }
         public ActiveAccountReadDTO? ActiveAccount { get; set; }
         public SpendingLimitReadDTO? SpendingLimit { get; set; }
@@ -64,7 +64,7 @@ namespace Src.Controllers
     {
         [Required]
         public Guid UserId { get; set; }
-        
+
         public bool IsMain { get; set; }
 
         [Required]
@@ -122,7 +122,12 @@ namespace Src.Controllers
         private readonly AppDbContext _context;
         private readonly ITimezoneService _timezoneService;
 
-        public AccountController(IRepository<Account, AccountReadDTO> repository, AppDbContext context, ITimezoneService timezoneService) : base(repository)
+        public AccountController(
+            IRepository<Account, AccountReadDTO> repository,
+            AppDbContext context,
+            ITimezoneService timezoneService
+        )
+            : base(repository)
         {
             _context = context;
             _timezoneService = timezoneService;
@@ -140,25 +145,43 @@ namespace Src.Controllers
 
         private async Task<AccountReadDTO> ConvertToUserTimezone(AccountReadDTO dto, Guid userId)
         {
-            dto.CreatedAt = await _timezoneService.ConvertToUserTimezoneAsync(userId, dto.CreatedAt);
-            dto.UpdatedAt = await _timezoneService.ConvertToUserTimezoneAsync(userId, dto.UpdatedAt);
+            dto.CreatedAt = await _timezoneService.ConvertToUserTimezoneAsync(
+                userId,
+                dto.CreatedAt
+            );
+            dto.UpdatedAt = await _timezoneService.ConvertToUserTimezoneAsync(
+                userId,
+                dto.UpdatedAt
+            );
             if (dto.DeletedAt.HasValue)
             {
-                dto.DeletedAt = await _timezoneService.ConvertToUserTimezoneAsync(userId, dto.DeletedAt.Value);
+                dto.DeletedAt = await _timezoneService.ConvertToUserTimezoneAsync(
+                    userId,
+                    dto.DeletedAt.Value
+                );
             }
             if (dto.ActiveAccount != null)
             {
-                dto.ActiveAccount.ActivatedAt = await _timezoneService.ConvertToUserTimezoneAsync(userId, dto.ActiveAccount.ActivatedAt);
+                dto.ActiveAccount.ActivatedAt = await _timezoneService.ConvertToUserTimezoneAsync(
+                    userId,
+                    dto.ActiveAccount.ActivatedAt
+                );
             }
             if (dto.SpendingLimit != null)
             {
-                dto.SpendingLimit.PeriodStartDate = await _timezoneService.ConvertToUserTimezoneAsync(userId, dto.SpendingLimit.PeriodStartDate);
+                dto.SpendingLimit.PeriodStartDate =
+                    await _timezoneService.ConvertToUserTimezoneAsync(
+                        userId,
+                        dto.SpendingLimit.PeriodStartDate
+                    );
             }
             return dto;
         }
 
         [HttpGet]
-        public ActionResult<ListReadDTO<AccountReadDTO>> GetAccounts([FromQuery] PaginateDTO paginate)
+        public ActionResult<ListReadDTO<AccountReadDTO>> GetAccounts(
+            [FromQuery] PaginateDTO paginate
+        )
         {
             return GetEntities(paginate);
         }
@@ -170,49 +193,51 @@ namespace Src.Controllers
         }
 
         [HttpGet("user/{userId}")]
-        public ActionResult<ListReadDTO<AccountReadDTO>> GetAccountsByUser(Guid userId, [FromQuery] PaginateDTO paginate)
+        public ActionResult<ListReadDTO<AccountReadDTO>> GetAccountsByUser(
+            Guid userId,
+            [FromQuery] PaginateDTO paginate
+        )
         {
             return FindEntities(paginate, a => a.UserId == userId);
         }
 
         [HttpGet("user/{userId}/all")]
-        public ActionResult<ListReadDTO<AccountReadDTO>> GetAllAccountsByUserIncludingDeleted(Guid userId, [FromQuery] PaginateDTO paginate)
+        public ActionResult<ListReadDTO<AccountReadDTO>> GetAllAccountsByUserIncludingDeleted(
+            Guid userId,
+            [FromQuery] PaginateDTO paginate
+        )
         {
             var accountRepository = _repository as AccountRepository;
             if (accountRepository != null)
             {
-                var accounts = accountRepository.FindAll(a => a.UserId == userId, out int total)
+                var accounts = accountRepository
+                    .FindAll(a => a.UserId == userId, out int total)
                     .Skip(paginate.Skip)
                     .Take(paginate.Limit)
                     .ToList();
 
                 var data = accounts.Select(accountRepository.ParseToRead);
-                return Ok(new ListReadDTO<AccountReadDTO>
-                {
-                    Data = data,
-                    Total = total,
-                });
+                return Ok(new ListReadDTO<AccountReadDTO> { Data = data, Total = total });
             }
             return FindEntities(paginate, a => a.UserId == userId);
         }
 
         [HttpGet("admin/all")]
-        public ActionResult<ListReadDTO<AccountReadDTO>> GetAllAccounts([FromQuery] PaginateDTO paginate)
+        public ActionResult<ListReadDTO<AccountReadDTO>> GetAllAccounts(
+            [FromQuery] PaginateDTO paginate
+        )
         {
             var accountRepository = _repository as AccountRepository;
             if (accountRepository != null)
             {
-                var accounts = accountRepository.GetAll(out int total)
+                var accounts = accountRepository
+                    .GetAll(out int total)
                     .Skip(paginate.Skip)
                     .Take(paginate.Limit)
                     .ToList();
 
                 var data = accounts.Select(accountRepository.ParseToRead);
-                return Ok(new ListReadDTO<AccountReadDTO>
-                {
-                    Data = data,
-                    Total = total,
-                });
+                return Ok(new ListReadDTO<AccountReadDTO> { Data = data, Total = total });
             }
             return GetEntities(paginate);
         }
@@ -224,29 +249,30 @@ namespace Src.Controllers
             if (accountRepository != null)
             {
                 var account = accountRepository.FindAll(a => a.Id == id);
-                if (account == null) return NotFound();
+                if (account == null)
+                    return NotFound();
                 return Ok(accountRepository.ParseToRead(account));
             }
             return FindEntity(a => a.Id == id);
         }
 
         [HttpGet("admin/user/{userId}")]
-        public ActionResult<ListReadDTO<AccountReadDTO>> GetAllAccountsByUser(Guid userId, [FromQuery] PaginateDTO paginate)
+        public ActionResult<ListReadDTO<AccountReadDTO>> GetAllAccountsByUser(
+            Guid userId,
+            [FromQuery] PaginateDTO paginate
+        )
         {
             var accountRepository = _repository as AccountRepository;
             if (accountRepository != null)
             {
-                var accounts = accountRepository.FindAll(a => a.UserId == userId, out int total)
+                var accounts = accountRepository
+                    .FindAll(a => a.UserId == userId, out int total)
                     .Skip(paginate.Skip)
                     .Take(paginate.Limit)
                     .ToList();
 
                 var data = accounts.Select(accountRepository.ParseToRead);
-                return Ok(new ListReadDTO<AccountReadDTO>
-                {
-                    Data = data,
-                    Total = total,
-                });
+                return Ok(new ListReadDTO<AccountReadDTO> { Data = data, Total = total });
             }
             return FindEntities(paginate, a => a.UserId == userId);
         }
@@ -267,10 +293,17 @@ namespace Src.Controllers
 
                 if (createDto.IsMain)
                 {
-                    var existingMainAccount = _repository.Find(a => a.UserId == createDto.UserId && a.IsMain);
+                    var existingMainAccount = _repository.Find(a =>
+                        a.UserId == createDto.UserId && a.IsMain
+                    );
                     if (existingMainAccount != null)
                     {
-                        return BadRequest(new { error = "User already has a main account. Only one main account is allowed per user." });
+                        return BadRequest(
+                            new
+                            {
+                                error = "User already has a main account. Only one main account is allowed per user.",
+                            }
+                        );
                     }
                 }
 
@@ -281,7 +314,7 @@ namespace Src.Controllers
                     IsMain = createDto.IsMain,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow,
-                    IsDeleted = false
+                    IsDeleted = false,
                 };
 
                 account.CoreDetails = new CoreDetailsComponent
@@ -292,7 +325,7 @@ namespace Src.Controllers
                     Balance = createDto.CoreDetails.Balance,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow,
-                    IsDeleted = false
+                    IsDeleted = false,
                 };
 
                 if (createDto.ActiveAccount != null)
@@ -304,7 +337,7 @@ namespace Src.Controllers
                         ActivatedAt = DateTime.UtcNow,
                         CreatedAt = DateTime.UtcNow,
                         UpdatedAt = DateTime.UtcNow,
-                        IsDeleted = false
+                        IsDeleted = false,
                     };
                 }
 
@@ -316,9 +349,10 @@ namespace Src.Controllers
                         LimitAmount = createDto.SpendingLimit.LimitAmount,
                         Timeframe = createDto.SpendingLimit.Timeframe,
                         CurrentSpending = createDto.SpendingLimit.CurrentSpending,
-                        PeriodStartDate = createDto.SpendingLimit.PeriodStartDate ?? DateTime.UtcNow,
+                        PeriodStartDate =
+                            createDto.SpendingLimit.PeriodStartDate ?? DateTime.UtcNow,
                         CreatedAt = DateTime.UtcNow,
-                        UpdatedAt = DateTime.UtcNow
+                        UpdatedAt = DateTime.UtcNow,
                     };
                 }
 
@@ -330,7 +364,7 @@ namespace Src.Controllers
                         GoalName = createDto.SavingGoal.GoalName,
                         TargetAmount = createDto.SavingGoal.TargetAmount,
                         CreatedAt = DateTime.UtcNow,
-                        UpdatedAt = DateTime.UtcNow
+                        UpdatedAt = DateTime.UtcNow,
                     };
                 }
 
@@ -338,15 +372,21 @@ namespace Src.Controllers
             }
             catch (Exception ex)
             {
-                if (ex.Message.Contains("FOREIGN KEY constraint failed") || ex.InnerException?.Message.Contains("FOREIGN KEY constraint failed") == true)
+                if (
+                    ex.Message.Contains("FOREIGN KEY constraint failed")
+                    || ex.InnerException?.Message.Contains("FOREIGN KEY constraint failed") == true
+                )
                     return BadRequest("Invalid user ID. The specified user does not exist.");
-                
+
                 return BadRequest($"An error occurred while creating the account: {ex.Message}");
             }
         }
 
         [HttpPut("{id}")]
-        public ActionResult<AccountReadDTO> UpdateAccount(Guid id, [FromBody] AccountCreateDTO updateDto)
+        public ActionResult<AccountReadDTO> UpdateAccount(
+            Guid id,
+            [FromBody] AccountCreateDTO updateDto
+        )
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -364,23 +404,34 @@ namespace Src.Controllers
 
             if (updateDto.IsMain && !account.IsMain)
             {
-                var existingMainAccount = _repository.Find(a => a.UserId == updateDto.UserId && a.IsMain && a.Id != id);
+                var existingMainAccount = _repository.Find(a =>
+                    a.UserId == updateDto.UserId && a.IsMain && a.Id != id
+                );
                 if (existingMainAccount != null)
                 {
-                    return BadRequest(new { error = "User already has a main account. Only one main account is allowed per user." });
+                    return BadRequest(
+                        new
+                        {
+                            error = "User already has a main account. Only one main account is allowed per user.",
+                        }
+                    );
                 }
             }
 
-            return UpdateEntity(updateDto, a => a.Id == id, entity =>
-            {
-                entity.UpdatedAt = DateTime.UtcNow;
-            });
+            return UpdateEntity(
+                updateDto,
+                a => a.Id == id,
+                entity =>
+                {
+                    entity.UpdatedAt = DateTime.UtcNow;
+                }
+            );
         }
 
         public (bool Success, string ErrorMessage) DeleteAllAccountsForUser(Guid userId)
         {
-            var activeAccounts = _context.Accounts
-                .Include(a => a.CoreDetails)
+            var activeAccounts = _context
+                .Accounts.Include(a => a.CoreDetails)
                 .Include(a => a.ActiveAccount)
                 .Include(a => a.SpendingLimit)
                 .Include(a => a.SavingGoal)
@@ -423,8 +474,8 @@ namespace Src.Controllers
         [HttpDelete("{id}")]
         public ActionResult DeleteAccount(Guid id)
         {
-            var account = _context.Accounts
-                .Include(a => a.CoreDetails)
+            var account = _context
+                .Accounts.Include(a => a.CoreDetails)
                 .Where(a => a.Id == id && !a.IsDeleted)
                 .FirstOrDefault();
 
@@ -435,7 +486,12 @@ namespace Src.Controllers
                 return BadRequest(new { error = "Main accounts cannot be deleted." });
 
             if (account.CoreDetails != null && account.CoreDetails.Balance != 0)
-                return BadRequest(new { error = $"Account cannot be deleted because it has a non-zero balance of ${account.CoreDetails.Balance:F2}. Please transfer all funds before deleting the account." });
+                return BadRequest(
+                    new
+                    {
+                        error = $"Account cannot be deleted because it has a non-zero balance of ${account.CoreDetails.Balance:F2}. Please transfer all funds before deleting the account.",
+                    }
+                );
 
             return RemoveEntity(a => a.Id == id);
         }

@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Src.Database;
 using Src.Components;
+using Src.Database;
 
 namespace Src.Entities
 {
@@ -25,8 +25,10 @@ namespace Src.Entities
         public DateTime? DeletedAt { get; set; }
 
         public virtual User User { get; set; } = null!;
-        public virtual ICollection<Transaction> SourceTransactions { get; set; } = new List<Transaction>();
-        public virtual ICollection<Transaction> DestinationTransactions { get; set; } = new List<Transaction>();
+        public virtual ICollection<Transaction> SourceTransactions { get; set; } =
+            new List<Transaction>();
+        public virtual ICollection<Transaction> DestinationTransactions { get; set; } =
+            new List<Transaction>();
 
         public virtual CoreDetailsComponent? CoreDetails { get; set; }
         public virtual ActiveAccountComponent? ActiveAccount { get; set; }

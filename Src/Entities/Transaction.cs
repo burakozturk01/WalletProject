@@ -7,16 +7,16 @@ namespace Src.Entities
 {
     public enum SourceType
     {
-        ACCOUNT,    
-        IBAN,       
-        SYSTEM      
+        ACCOUNT,
+        IBAN,
+        SYSTEM,
     }
 
     public enum DestinationType
     {
-        ACCOUNT,    
-        IBAN,       
-        SPEND       
+        ACCOUNT,
+        IBAN,
+        SPEND,
     }
 
     public class Transaction

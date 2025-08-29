@@ -18,41 +18,41 @@ type AppProps = {
 }
 
 export function App({}: AppProps) {
-  return (
-    <AuthProvider>
-      <ThemeProvider>
-        <Router>
-        <Routes>
-          <Route path="/login" element={
-            <AuthRedirect>
-              <LoginPage />
-            </AuthRedirect>
-          } />
-          <Route path="/register" element={
-            <AuthRedirect>
-              <RegisterPage />
-            </AuthRedirect>
-          } />
-          
-          <Route path="/admin" element={<AdminPage />} />
-          
-          <Route path="/" element={
-            <ProtectedRoute>
-              <MainLayout />
-            </ProtectedRoute>
-          }>
-            <Route index element={<Navigate to="/dashboard" replace />} />
-            <Route path="dashboard" element={<DashboardPage />} />
-            <Route path="accounts" element={<AccountsPage />} />
-            <Route path="transactions" element={<TransactionsPage />} />
-            <Route path="transfer-pay" element={<TransferPayPage />} />
-            <Route path="settings" element={<SettingsPage />} />
-          </Route>
-          
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
-        </Routes>
-        </Router>
-      </ThemeProvider>
-    </AuthProvider>
-  );
+    return (
+        <AuthProvider>
+            <ThemeProvider>
+                <Router>
+                    <Routes>
+                        <Route path="/login" element={
+                            <AuthRedirect>
+                                <LoginPage />
+                            </AuthRedirect>
+                        } />
+                        <Route path="/register" element={
+                            <AuthRedirect>
+                                <RegisterPage />
+                            </AuthRedirect>
+                        } />
+                        
+                        <Route path="/admin" element={<AdminPage />} />
+                        
+                        <Route path="/" element={
+                            <ProtectedRoute>
+                                <MainLayout />
+                            </ProtectedRoute>
+                        }>
+                            <Route index element={<Navigate to="/dashboard" replace />} />
+                            <Route path="dashboard" element={<DashboardPage />} />
+                            <Route path="accounts" element={<AccountsPage />} />
+                            <Route path="transactions" element={<TransactionsPage />} />
+                            <Route path="transfer-pay" element={<TransferPayPage />} />
+                            <Route path="settings" element={<SettingsPage />} />
+                        </Route>
+                        
+                        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                    </Routes>
+                </Router>
+            </ThemeProvider>
+        </AuthProvider>
+    );
 }

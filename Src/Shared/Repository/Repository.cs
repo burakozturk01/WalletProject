@@ -7,7 +7,8 @@ using Src.Database;
 
 namespace Src.Shared.Repository
 {
-    public abstract class Repository<TEntity, TReadDTO> : IRepository<TEntity, TReadDTO> where TEntity : class, IBaseEntity
+    public abstract class Repository<TEntity, TReadDTO> : IRepository<TEntity, TReadDTO>
+        where TEntity : class, IBaseEntity
     {
         protected readonly AppDbContext _context;
 
@@ -31,12 +32,16 @@ namespace Src.Shared.Repository
             return _context.Set<TEntity>().FirstOrDefault(predicate);
         }
 
-        public virtual IQueryable<TEntity> Find(Expression<Func<TEntity, bool>> predicate, out int count)
+        public virtual IQueryable<TEntity> Find(
+            Expression<Func<TEntity, bool>> predicate,
+            out int count
+        )
         {
-            IQueryable<TEntity> entities = _context.Set<TEntity>()
+            IQueryable<TEntity> entities = _context
+                .Set<TEntity>()
                 .OrderBy(entity => entity.Id)
                 .Where(predicate);
-                
+
             count = entities.Count();
 
             return entities;
@@ -71,14 +76,13 @@ namespace Src.Shared.Repository
         {
             foreach (PropertyInfo prop in data.GetType().GetProperties())
             {
-                if (prop.GetValue(data) is null) continue;
+                if (prop.GetValue(data) is null)
+                    continue;
 
-                entity
-                    .GetType()
-                    .GetProperty(prop.Name)
-                    .SetValue(entity, prop.GetValue(data));
+                entity.GetType().GetProperty(prop.Name).SetValue(entity, prop.GetValue(data));
             }
         }
+
         public bool SaveChanges()
         {
             var rows = _context.SaveChanges();
@@ -101,7 +105,12 @@ namespace Src.Shared.Repository
             throw new NotImplementedException();
         }
 
-        public IEnumerable<TEntity> GetInRange(int skip, int limit, Expression<Func<TEntity, bool>> predicate, out int count)
+        public IEnumerable<TEntity> GetInRange(
+            int skip,
+            int limit,
+            Expression<Func<TEntity, bool>> predicate,
+            out int count
+        )
         {
             throw new NotImplementedException();
         }

@@ -20,7 +20,7 @@ setTimeout(() => {
         shell: true
     });
 
-        process.on('SIGINT', () => {
+    process.on('SIGINT', () => {
         console.log('\n🛑 Shutting down development servers...');
         reactProcess.kill('SIGINT');
         dotnetProcess.kill('SIGINT');
@@ -45,6 +45,6 @@ setTimeout(() => {
         process.exit(code);
     });
 
-}, 3000); 
+}, 3000);
 
 process.stdin.resume();

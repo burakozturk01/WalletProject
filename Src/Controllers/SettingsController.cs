@@ -4,8 +4,8 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Src.Services;
 using Src.Entities;
+using Src.Services;
 
 namespace Src.Controllers
 {
@@ -51,12 +51,17 @@ namespace Src.Controllers
         }
 
         [HttpPut]
-        public async Task<ActionResult<UserSettings>> UpdateUserSettings([FromBody] UpdateSettingsRequest request)
+        public async Task<ActionResult<UserSettings>> UpdateUserSettings(
+            [FromBody] UpdateSettingsRequest request
+        )
         {
             try
             {
                 var userId = GetCurrentUserId();
-                var userSettings = await _settingsService.UpdateSettingsAsync(userId, request.Settings);
+                var userSettings = await _settingsService.UpdateSettingsAsync(
+                    userId,
+                    request.Settings
+                );
                 return Ok(userSettings);
             }
             catch (UnauthorizedAccessException ex)
@@ -70,7 +75,9 @@ namespace Src.Controllers
         }
 
         [HttpPut("setting")]
-        public async Task<ActionResult<UserSettings>> UpdateSetting([FromBody] UpdateSettingRequest request)
+        public async Task<ActionResult<UserSettings>> UpdateSetting(
+            [FromBody] UpdateSettingRequest request
+        )
         {
             try
             {

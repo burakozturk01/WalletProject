@@ -2,7 +2,5 @@ using System;
 
 namespace Src.Database
 {
-    public interface IDeletable 
-    {
-    }
+    public interface IDeletable { }
 }

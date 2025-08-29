@@ -1,15 +1,15 @@
 using System;
+using System.ComponentModel.DataAnnotations;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using Src.Entities;
 using Src.Components;
-using Src.Repositories;
 using Src.Database;
-using System.ComponentModel.DataAnnotations;
+using Src.Entities;
+using Src.Repositories;
 
 namespace Src.Controllers
 {
@@ -61,7 +61,11 @@ namespace Src.Controllers
         private readonly AppDbContext _context;
         private readonly IConfiguration _configuration;
 
-        public AuthController(UserRepository userRepository, AppDbContext context, IConfiguration configuration)
+        public AuthController(
+            UserRepository userRepository,
+            AppDbContext context,
+            IConfiguration configuration
+        )
         {
             _userRepository = userRepository;
             _context = context;
@@ -100,9 +104,9 @@ namespace Src.Controllers
                     {
                         Id = user.Id,
                         Username = user.Username,
-                        Email = user.Email
+                        Email = user.Email,
                     },
-                    ExpiresAt = expiresAt
+                    ExpiresAt = expiresAt,
                 };
 
                 return Ok(response);
@@ -123,17 +127,25 @@ namespace Src.Controllers
             try
             {
                 // Check if username already exists
-                var existingUserByUsername = _userRepository.FindAll(u => u.Username == registerDto.Username);
+                var existingUserByUsername = _userRepository.FindAll(u =>
+                    u.Username == registerDto.Username
+                );
                 if (existingUserByUsername != null)
                 {
-                    return BadRequest("Username already exists. Please choose a different username.");
+                    return BadRequest(
+                        "Username already exists. Please choose a different username."
+                    );
                 }
 
                 // Check if email already exists
-                var existingUserByEmail = _userRepository.FindAll(u => u.Email == registerDto.Email);
+                var existingUserByEmail = _userRepository.FindAll(u =>
+                    u.Email == registerDto.Email
+                );
                 if (existingUserByEmail != null)
                 {
-                    return BadRequest("Email already exists. Please use a different email address.");
+                    return BadRequest(
+                        "Email already exists. Please use a different email address."
+                    );
                 }
 
                 // Create new user
@@ -145,7 +157,7 @@ namespace Src.Controllers
                     PasswordHash = BCrypt.Net.BCrypt.HashPassword(registerDto.Password),
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow,
-                    IsDeleted = false
+                    IsDeleted = false,
                 };
 
                 // Create default main account for the user
@@ -156,7 +168,7 @@ namespace Src.Controllers
                     IsMain = true,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow,
-                    IsDeleted = false
+                    IsDeleted = false,
                 };
 
                 // Create core details for the main account
@@ -168,7 +180,7 @@ namespace Src.Controllers
                     Balance = 0.00m,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow,
-                    IsDeleted = false
+                    IsDeleted = false,
                 };
 
                 // Add the default account to the user
@@ -192,9 +204,9 @@ namespace Src.Controllers
                     {
                         Id = user.Id,
                         Username = user.Username,
-                        Email = user.Email
+                        Email = user.Email,
                     },
-                    ExpiresAt = expiresAt
+                    ExpiresAt = expiresAt,
                 };
 
                 return Ok(response);
@@ -202,12 +214,17 @@ namespace Src.Controllers
             catch (Exception ex)
             {
                 dbTransaction.Rollback();
-                
-                if (ex.Message.Contains("UNIQUE constraint failed") || ex.InnerException?.Message.Contains("UNIQUE constraint failed") == true)
+
+                if (
+                    ex.Message.Contains("UNIQUE constraint failed")
+                    || ex.InnerException?.Message.Contains("UNIQUE constraint failed") == true
+                )
                 {
-                    return BadRequest("Username or email already exists. Please use different values.");
+                    return BadRequest(
+                        "Username or email already exists. Please use different values."
+                    );
                 }
-                
+
                 return BadRequest($"Registration failed: {ex.Message}");
             }
         }
@@ -236,7 +253,7 @@ namespace Src.Controllers
                 {
                     Id = user.Id,
                     Username = user.Username,
-                    Email = user.Email
+                    Email = user.Email,
                 };
 
                 return Ok(userDto);
@@ -249,7 +266,9 @@ namespace Src.Controllers
 
         private string GenerateJwtToken(User user)
         {
-            var secretKey = Environment.GetEnvironmentVariable("JWT_SECRET_KEY") ?? "your-super-secret-key-that-should-be-at-least-32-characters-long";
+            var secretKey =
+                Environment.GetEnvironmentVariable("JWT_SECRET_KEY")
+                ?? "your-super-secret-key-that-should-be-at-least-32-characters-long";
             var issuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? "WalletProject";
             var audience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? "WalletProject";
 
@@ -262,7 +281,11 @@ namespace Src.Controllers
                 new Claim(ClaimTypes.Name, user.Username),
                 new Claim(ClaimTypes.Email, user.Email),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64)
+                new Claim(
+                    JwtRegisteredClaimNames.Iat,
+                    DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(),
+                    ClaimValueTypes.Integer64
+                ),
             };
 
             var token = new JwtSecurityToken(

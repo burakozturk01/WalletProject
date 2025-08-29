@@ -10,9 +10,8 @@ namespace Src.Repositories
 {
     public class UserRepository : Repository<User, UserReadDTO>
     {
-        public UserRepository(AppDbContext context) : base(context)
-        {
-        }
+        public UserRepository(AppDbContext context)
+            : base(context) { }
 
         public override UserReadDTO ParseToRead(User entity)
         {
@@ -24,15 +23,16 @@ namespace Src.Repositories
                 CreatedAt = entity.CreatedAt,
                 UpdatedAt = entity.UpdatedAt,
                 IsDeleted = entity.IsDeleted,
-                DeletedAt = entity.DeletedAt
+                DeletedAt = entity.DeletedAt,
             };
         }
 
         public override IQueryable<User> Get(out int count)
         {
-            IQueryable<User> entities = _context.Set<User>()
+            IQueryable<User> entities = _context
+                .Set<User>()
                 .Include(u => u.Accounts)
-                .Where(u => !u.IsDeleted) 
+                .Where(u => !u.IsDeleted)
                 .OrderBy(entity => entity.CreatedAt);
             count = entities.Count();
 
@@ -41,29 +41,35 @@ namespace Src.Repositories
 
         public override User Find(System.Linq.Expressions.Expression<Func<User, bool>> predicate)
         {
-            return _context.Set<User>()
+            return _context
+                .Set<User>()
                 .Include(u => u.Accounts)
-                .Where(u => !u.IsDeleted) 
+                .Where(u => !u.IsDeleted)
                 .FirstOrDefault(predicate);
         }
 
-        public override IQueryable<User> Find(System.Linq.Expressions.Expression<Func<User, bool>> predicate, out int count)
+        public override IQueryable<User> Find(
+            System.Linq.Expressions.Expression<Func<User, bool>> predicate,
+            out int count
+        )
         {
-            IQueryable<User> entities = _context.Set<User>()
+            IQueryable<User> entities = _context
+                .Set<User>()
                 .Include(u => u.Accounts)
-                .Where(u => !u.IsDeleted) 
+                .Where(u => !u.IsDeleted)
                 .Where(predicate)
                 .OrderBy(entity => entity.CreatedAt);
-                
+
             count = entities.Count();
 
             return entities;
         }
 
-                public IQueryable<User> GetAll(out int count)
+        public IQueryable<User> GetAll(out int count)
         {
-            IQueryable<User> entities = _context.Set<User>()
-                .IgnoreQueryFilters() 
+            IQueryable<User> entities = _context
+                .Set<User>()
+                .IgnoreQueryFilters()
                 .Include(u => u.Accounts)
                 .OrderBy(entity => entity.CreatedAt);
             count = entities.Count();
@@ -73,20 +79,25 @@ namespace Src.Repositories
 
         public User FindAll(System.Linq.Expressions.Expression<Func<User, bool>> predicate)
         {
-            return _context.Set<User>()
-                .IgnoreQueryFilters() 
+            return _context
+                .Set<User>()
+                .IgnoreQueryFilters()
                 .Include(u => u.Accounts)
                 .FirstOrDefault(predicate);
         }
 
-        public IQueryable<User> FindAll(System.Linq.Expressions.Expression<Func<User, bool>> predicate, out int count)
+        public IQueryable<User> FindAll(
+            System.Linq.Expressions.Expression<Func<User, bool>> predicate,
+            out int count
+        )
         {
-            IQueryable<User> entities = _context.Set<User>()
-                .IgnoreQueryFilters() 
+            IQueryable<User> entities = _context
+                .Set<User>()
+                .IgnoreQueryFilters()
                 .Include(u => u.Accounts)
                 .Where(predicate)
                 .OrderBy(entity => entity.CreatedAt);
-                
+
             count = entities.Count();
 
             return entities;

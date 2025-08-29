@@ -28,7 +28,7 @@ namespace Src.Services
         public async Task<TimeZoneInfo> GetUserTimezoneInfoAsync(Guid userId)
         {
             var timezoneString = await GetUserTimezoneAsync(userId);
-            
+
             try
             {
                 return TimeZoneInfo.FindSystemTimeZoneById(timezoneString);

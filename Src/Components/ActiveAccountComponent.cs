@@ -12,10 +12,10 @@ namespace Src.Components
         [ForeignKey("Account")]
         public Guid AccountId { get; set; }
 
-                public Guid Id 
-        { 
-            get => AccountId; 
-            set => AccountId = value; 
+        public Guid Id
+        {
+            get => AccountId;
+            set => AccountId = value;
         }
 
         [Required]
@@ -30,9 +30,9 @@ namespace Src.Components
         public bool IsDeleted { get; set; }
         public DateTime? DeletedAt { get; set; }
 
-                public virtual Account Account { get; set; } = null!;
+        public virtual Account Account { get; set; } = null!;
 
-                public static bool MeetsActivationCriteria(Account account)
+        public static bool MeetsActivationCriteria(Account account)
         {
             return true;
         }

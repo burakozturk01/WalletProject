@@ -19,7 +19,7 @@ namespace Src.Services
             _jsonOptions = new JsonSerializerOptions
             {
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                WriteIndented = false
+                WriteIndented = false,
             };
         }
 
@@ -33,7 +33,10 @@ namespace Src.Services
 
             try
             {
-                var settingsDict = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(settings.SettingsJson, _jsonOptions);
+                var settingsDict = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(
+                    settings.SettingsJson,
+                    _jsonOptions
+                );
                 if (settingsDict != null && settingsDict.TryGetValue(key, out var value))
                 {
                     return JsonSerializer.Deserialize<T>(value.GetRawText(), _jsonOptions);
@@ -55,14 +58,16 @@ namespace Src.Services
         public async Task SetSettingAsync<T>(Guid userId, string key, T value)
         {
             var settings = await GetOrCreateUserSettingsAsync(userId);
-            
+
             Dictionary<string, object> settingsDict;
             try
             {
-                settingsDict = string.IsNullOrEmpty(settings.SettingsJson) 
+                settingsDict = string.IsNullOrEmpty(settings.SettingsJson)
                     ? new Dictionary<string, object>()
-                    : JsonSerializer.Deserialize<Dictionary<string, object>>(settings.SettingsJson, _jsonOptions) 
-                      ?? new Dictionary<string, object>();
+                    : JsonSerializer.Deserialize<Dictionary<string, object>>(
+                        settings.SettingsJson,
+                        _jsonOptions
+                    ) ?? new Dictionary<string, object>();
             }
             catch (JsonException)
             {
@@ -85,8 +90,10 @@ namespace Src.Services
 
             try
             {
-                return JsonSerializer.Deserialize<Dictionary<string, object>>(settings.SettingsJson, _jsonOptions) 
-                       ?? new Dictionary<string, object>();
+                return JsonSerializer.Deserialize<Dictionary<string, object>>(
+                        settings.SettingsJson,
+                        _jsonOptions
+                    ) ?? new Dictionary<string, object>();
             }
             catch (JsonException)
             {
@@ -94,7 +101,10 @@ namespace Src.Services
             }
         }
 
-        public async Task<UserSettings> UpdateSettingsAsync(Guid userId, Dictionary<string, object> newSettings)
+        public async Task<UserSettings> UpdateSettingsAsync(
+            Guid userId,
+            Dictionary<string, object> newSettings
+        )
         {
             var settings = await GetOrCreateUserSettingsAsync(userId);
             settings.SettingsJson = JsonSerializer.Serialize(newSettings, _jsonOptions);
@@ -104,9 +114,8 @@ namespace Src.Services
 
         public async Task<UserSettings> GetUserSettingsAsync(Guid userId)
         {
-            var settings = await _context.UserSettings
-                .FirstOrDefaultAsync(s => s.UserId == userId);
-            
+            var settings = await _context.UserSettings.FirstOrDefaultAsync(s => s.UserId == userId);
+
             if (settings == null)
             {
                 // Return a new UserSettings with default values
@@ -114,10 +123,10 @@ namespace Src.Services
                 {
                     Id = Guid.NewGuid(),
                     UserId = userId,
-                    SettingsJson = "{}"
+                    SettingsJson = "{}",
                 };
             }
-            
+
             return settings;
         }
 
@@ -131,9 +140,12 @@ namespace Src.Services
 
             try
             {
-                var settingsDict = JsonSerializer.Deserialize<Dictionary<string, object>>(settings.SettingsJson, _jsonOptions) 
-                                   ?? new Dictionary<string, object>();
-                
+                var settingsDict =
+                    JsonSerializer.Deserialize<Dictionary<string, object>>(
+                        settings.SettingsJson,
+                        _jsonOptions
+                    ) ?? new Dictionary<string, object>();
+
                 if (settingsDict.Remove(key))
                 {
                     settings.SettingsJson = JsonSerializer.Serialize(settingsDict, _jsonOptions);
@@ -170,8 +182,7 @@ namespace Src.Services
 
         private async Task<UserSettings?> GetUserSettingsInternalAsync(Guid userId)
         {
-            return await _context.UserSettings
-                .FirstOrDefaultAsync(s => s.UserId == userId);
+            return await _context.UserSettings.FirstOrDefaultAsync(s => s.UserId == userId);
         }
 
         private async Task<UserSettings> GetOrCreateUserSettingsAsync(Guid userId)
@@ -183,7 +194,7 @@ namespace Src.Services
                 {
                     Id = Guid.NewGuid(),
                     UserId = userId,
-                    SettingsJson = "{}"
+                    SettingsJson = "{}",
                 };
                 _context.UserSettings.Add(settings);
                 await _context.SaveChangesAsync();

@@ -4,7 +4,8 @@ using System.Linq.Expressions;
 
 namespace Src.Shared.Repository
 {
-    public interface IRepository<TEntity, TReadDTO> where TEntity : class
+    public interface IRepository<TEntity, TReadDTO>
+        where TEntity : class
     {
         TReadDTO ParseToRead(TEntity entity);
 

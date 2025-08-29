@@ -36,21 +36,22 @@ namespace Src.Repositories
                 SourceAccountBalanceBefore = entity.SourceAccountBalanceBefore,
                 DestinationAccountBalanceBefore = entity.DestinationAccountBalanceBefore,
                 CreatedAt = entity.CreatedAt,
-                UpdatedAt = entity.UpdatedAt
+                UpdatedAt = entity.UpdatedAt,
             };
         }
 
         public IQueryable<Transaction> Get(out int count)
         {
-            IQueryable<Transaction> entities = _context.Set<Transaction>()
+            IQueryable<Transaction> entities = _context
+                .Set<Transaction>()
                 .Include(t => t.SourceAccount)
-                    .ThenInclude(a => a.User) 
+                .ThenInclude(a => a.User)
                 .Include(t => t.SourceAccount)
-                    .ThenInclude(a => a.CoreDetails)
+                .ThenInclude(a => a.CoreDetails)
                 .Include(t => t.DestinationAccount)
-                    .ThenInclude(a => a.User) 
+                .ThenInclude(a => a.User)
                 .Include(t => t.DestinationAccount)
-                    .ThenInclude(a => a.CoreDetails)
+                .ThenInclude(a => a.CoreDetails)
                 .OrderByDescending(entity => entity.Timestamp);
             count = entities.Count();
 
@@ -59,32 +60,37 @@ namespace Src.Repositories
 
         public Transaction Find(Expression<Func<Transaction, bool>> predicate)
         {
-            return _context.Set<Transaction>()
+            return _context
+                .Set<Transaction>()
                 .Include(t => t.SourceAccount)
-                    .ThenInclude(a => a.User) 
+                .ThenInclude(a => a.User)
                 .Include(t => t.SourceAccount)
-                    .ThenInclude(a => a.CoreDetails)
+                .ThenInclude(a => a.CoreDetails)
                 .Include(t => t.DestinationAccount)
-                    .ThenInclude(a => a.User) 
+                .ThenInclude(a => a.User)
                 .Include(t => t.DestinationAccount)
-                    .ThenInclude(a => a.CoreDetails)
+                .ThenInclude(a => a.CoreDetails)
                 .FirstOrDefault(predicate);
         }
 
-        public IQueryable<Transaction> Find(Expression<Func<Transaction, bool>> predicate, out int count)
+        public IQueryable<Transaction> Find(
+            Expression<Func<Transaction, bool>> predicate,
+            out int count
+        )
         {
-            IQueryable<Transaction> entities = _context.Set<Transaction>()
+            IQueryable<Transaction> entities = _context
+                .Set<Transaction>()
                 .Include(t => t.SourceAccount)
-                    .ThenInclude(a => a.User) 
+                .ThenInclude(a => a.User)
                 .Include(t => t.SourceAccount)
-                    .ThenInclude(a => a.CoreDetails)
+                .ThenInclude(a => a.CoreDetails)
                 .Include(t => t.DestinationAccount)
-                    .ThenInclude(a => a.User) 
+                .ThenInclude(a => a.User)
                 .Include(t => t.DestinationAccount)
-                    .ThenInclude(a => a.CoreDetails)
+                .ThenInclude(a => a.CoreDetails)
                 .OrderByDescending(entity => entity.Timestamp)
                 .Where(predicate);
-                
+
             count = entities.Count();
 
             return entities;
@@ -92,15 +98,16 @@ namespace Src.Repositories
 
         public Transaction GetOne(Guid id)
         {
-            return _context.Set<Transaction>()
+            return _context
+                .Set<Transaction>()
                 .Include(t => t.SourceAccount)
-                    .ThenInclude(a => a.User) 
+                .ThenInclude(a => a.User)
                 .Include(t => t.SourceAccount)
-                    .ThenInclude(a => a.CoreDetails)
+                .ThenInclude(a => a.CoreDetails)
                 .Include(t => t.DestinationAccount)
-                    .ThenInclude(a => a.User) 
+                .ThenInclude(a => a.User)
                 .Include(t => t.DestinationAccount)
-                    .ThenInclude(a => a.CoreDetails)
+                .ThenInclude(a => a.CoreDetails)
                 .FirstOrDefault(t => t.Id == id);
         }
 

@@ -7,14 +7,14 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Src.Entities;
 using Src.Components;
+using Src.Database;
+using Src.Entities;
+using Src.Repositories;
+using Src.Services;
 using Src.Shared.Controller;
 using Src.Shared.DTO;
 using Src.Shared.Repository;
-using Src.Database;
-using Src.Repositories;
-using Src.Services;
 
 namespace Src.Controllers
 {
@@ -70,7 +70,12 @@ namespace Src.Controllers
         private readonly AppDbContext _context;
         private readonly ITimezoneService _timezoneService;
 
-        public UserController(IRepository<User, UserReadDTO> repository, AppDbContext context, ITimezoneService timezoneService) : base(repository)
+        public UserController(
+            IRepository<User, UserReadDTO> repository,
+            AppDbContext context,
+            ITimezoneService timezoneService
+        )
+            : base(repository)
         {
             _context = context;
             _timezoneService = timezoneService;
@@ -88,11 +93,20 @@ namespace Src.Controllers
 
         private async Task<UserReadDTO> ConvertToUserTimezone(UserReadDTO dto, Guid userId)
         {
-            dto.CreatedAt = await _timezoneService.ConvertToUserTimezoneAsync(userId, dto.CreatedAt);
-            dto.UpdatedAt = await _timezoneService.ConvertToUserTimezoneAsync(userId, dto.UpdatedAt);
+            dto.CreatedAt = await _timezoneService.ConvertToUserTimezoneAsync(
+                userId,
+                dto.CreatedAt
+            );
+            dto.UpdatedAt = await _timezoneService.ConvertToUserTimezoneAsync(
+                userId,
+                dto.UpdatedAt
+            );
             if (dto.DeletedAt.HasValue)
             {
-                dto.DeletedAt = await _timezoneService.ConvertToUserTimezoneAsync(userId, dto.DeletedAt.Value);
+                dto.DeletedAt = await _timezoneService.ConvertToUserTimezoneAsync(
+                    userId,
+                    dto.DeletedAt.Value
+                );
             }
             return dto;
         }
@@ -115,17 +129,14 @@ namespace Src.Controllers
             var userRepository = _repository as UserRepository;
             if (userRepository != null)
             {
-                var users = userRepository.GetAll(out int total)
+                var users = userRepository
+                    .GetAll(out int total)
                     .Skip(paginate.Skip)
                     .Take(paginate.Limit)
                     .ToList();
 
                 var data = users.Select(userRepository.ParseToRead);
-                return Ok(new ListReadDTO<UserReadDTO>
-                {
-                    Data = data,
-                    Total = total,
-                });
+                return Ok(new ListReadDTO<UserReadDTO> { Data = data, Total = total });
             }
             return GetEntities(paginate);
         }
@@ -153,13 +164,19 @@ namespace Src.Controllers
             try
             {
                 var userRepository = _repository as UserRepository;
-                var existingUserByUsername = userRepository?.FindAll(u => u.Username == createDto.Username);
+                var existingUserByUsername = userRepository?.FindAll(u =>
+                    u.Username == createDto.Username
+                );
                 if (existingUserByUsername != null)
-                    return BadRequest("Username already exists. Please choose a different username.");
+                    return BadRequest(
+                        "Username already exists. Please choose a different username."
+                    );
 
                 var existingUserByEmail = userRepository?.FindAll(u => u.Email == createDto.Email);
                 if (existingUserByEmail != null)
-                    return BadRequest("Email already exists. Please use a different email address.");
+                    return BadRequest(
+                        "Email already exists. Please use a different email address."
+                    );
 
                 var user = new User
                 {
@@ -169,7 +186,7 @@ namespace Src.Controllers
                     PasswordHash = BCrypt.Net.BCrypt.HashPassword(createDto.Password),
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow,
-                    IsDeleted = false
+                    IsDeleted = false,
                 };
 
                 var defaultAccount = new Account
@@ -179,7 +196,7 @@ namespace Src.Controllers
                     IsMain = true,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow,
-                    IsDeleted = false
+                    IsDeleted = false,
                 };
 
                 defaultAccount.CoreDetails = new CoreDetailsComponent
@@ -190,7 +207,7 @@ namespace Src.Controllers
                     Balance = 0.00m,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow,
-                    IsDeleted = false
+                    IsDeleted = false,
                 };
 
                 user.Accounts.Add(defaultAccount);
@@ -199,9 +216,14 @@ namespace Src.Controllers
             }
             catch (Exception ex)
             {
-                if (ex.Message.Contains("UNIQUE constraint failed") || ex.InnerException?.Message.Contains("UNIQUE constraint failed") == true)
-                    return BadRequest("Username or email already exists. Please use different values.");
-                
+                if (
+                    ex.Message.Contains("UNIQUE constraint failed")
+                    || ex.InnerException?.Message.Contains("UNIQUE constraint failed") == true
+                )
+                    return BadRequest(
+                        "Username or email already exists. Please use different values."
+                    );
+
                 return BadRequest($"An error occurred while creating the user: {ex.Message}");
             }
         }
@@ -222,28 +244,48 @@ namespace Src.Controllers
 
                 if (!string.IsNullOrEmpty(updateDto.Email) && updateDto.Email != existingUser.Email)
                 {
-                    var existingUserByEmail = userRepository?.FindAll(u => u.Email == updateDto.Email && u.Id != id);
+                    var existingUserByEmail = userRepository?.FindAll(u =>
+                        u.Email == updateDto.Email && u.Id != id
+                    );
                     if (existingUserByEmail != null)
-                        return BadRequest("Email already exists. Please use a different email address.");
+                        return BadRequest(
+                            "Email already exists. Please use a different email address."
+                        );
                 }
 
-                if (!string.IsNullOrEmpty(updateDto.Username) && updateDto.Username != existingUser.Username)
+                if (
+                    !string.IsNullOrEmpty(updateDto.Username)
+                    && updateDto.Username != existingUser.Username
+                )
                 {
-                    var existingUserByUsername = userRepository?.FindAll(u => u.Username == updateDto.Username && u.Id != id);
+                    var existingUserByUsername = userRepository?.FindAll(u =>
+                        u.Username == updateDto.Username && u.Id != id
+                    );
                     if (existingUserByUsername != null)
-                        return BadRequest("Username already exists. Please choose a different username.");
+                        return BadRequest(
+                            "Username already exists. Please choose a different username."
+                        );
                 }
 
-                return UpdateEntity(updateDto, u => u.Id == id, entity =>
-                {
-                    entity.UpdatedAt = DateTime.UtcNow;
-                });
+                return UpdateEntity(
+                    updateDto,
+                    u => u.Id == id,
+                    entity =>
+                    {
+                        entity.UpdatedAt = DateTime.UtcNow;
+                    }
+                );
             }
             catch (Exception ex)
             {
-                if (ex.Message.Contains("UNIQUE constraint failed") || ex.InnerException?.Message.Contains("UNIQUE constraint failed") == true)
-                    return BadRequest("Username or email already exists. Please use different values.");
-                
+                if (
+                    ex.Message.Contains("UNIQUE constraint failed")
+                    || ex.InnerException?.Message.Contains("UNIQUE constraint failed") == true
+                )
+                    return BadRequest(
+                        "Username or email already exists. Please use different values."
+                    );
+
                 return BadRequest($"An error occurred while updating the user: {ex.Message}");
             }
         }
@@ -251,43 +293,45 @@ namespace Src.Controllers
         [HttpGet("{id}/total-balance")]
         public ActionResult<UserTotalBalanceDTO> GetUserTotalBalance(Guid id)
         {
-            var user = _context.Users
-                .Include(u => u.Accounts)
-                    .ThenInclude(a => a.CoreDetails)
+            var user = _context
+                .Users.Include(u => u.Accounts)
+                .ThenInclude(a => a.CoreDetails)
                 .Where(u => u.Id == id && !u.IsDeleted)
                 .FirstOrDefault();
 
             if (user == null)
                 return NotFound("User not found or has been deleted");
 
-            var totalBalance = user.Accounts
-                .Where(a => !a.IsDeleted && a.CoreDetails != null)
+            var totalBalance = user
+                .Accounts.Where(a => !a.IsDeleted && a.CoreDetails != null)
                 .Sum(a => a.CoreDetails.Balance);
 
             var accountCount = user.Accounts.Count();
             var activeAccountCount = user.Accounts.Count(a => !a.IsDeleted);
 
-            return Ok(new UserTotalBalanceDTO
-            {
-                UserId = user.Id,
-                TotalBalance = totalBalance,
-                AccountCount = accountCount,
-                ActiveAccountCount = activeAccountCount
-            });
+            return Ok(
+                new UserTotalBalanceDTO
+                {
+                    UserId = user.Id,
+                    TotalBalance = totalBalance,
+                    AccountCount = accountCount,
+                    ActiveAccountCount = activeAccountCount,
+                }
+            );
         }
 
         [HttpDelete("{id}")]
         public ActionResult DeleteUser(Guid id)
         {
-            var user = _context.Users
+            var user = _context
+                .Users.Include(u => u.Accounts)
+                .ThenInclude(a => a.CoreDetails)
                 .Include(u => u.Accounts)
-                    .ThenInclude(a => a.CoreDetails)
+                .ThenInclude(a => a.ActiveAccount)
                 .Include(u => u.Accounts)
-                    .ThenInclude(a => a.ActiveAccount)
+                .ThenInclude(a => a.SpendingLimit)
                 .Include(u => u.Accounts)
-                    .ThenInclude(a => a.SpendingLimit)
-                .Include(u => u.Accounts)
-                    .ThenInclude(a => a.SavingGoal)
+                .ThenInclude(a => a.SavingGoal)
                 .Where(u => u.Id == id && !u.IsDeleted)
                 .FirstOrDefault();
 
@@ -304,15 +348,23 @@ namespace Src.Controllers
                 .Sum(a => a.CoreDetails.Balance);
 
             if (totalBalance != 0)
-                return BadRequest($"User cannot be deleted. All accounts must have zero balance. Current total balance: {totalBalance:C}");
+                return BadRequest(
+                    $"User cannot be deleted. All accounts must have zero balance. Current total balance: {totalBalance:C}"
+                );
 
             var accountRepository = new AccountRepository(_context);
-            var accountController = new AccountController(accountRepository, _context, _timezoneService);
+            var accountController = new AccountController(
+                accountRepository,
+                _context,
+                _timezoneService
+            );
             var accountDeletionResult = accountController.DeleteAllAccountsForUser(id);
-            
+
             if (!accountDeletionResult.Success)
-                return BadRequest($"Failed to delete user accounts: {accountDeletionResult.ErrorMessage}");
-            
+                return BadRequest(
+                    $"Failed to delete user accounts: {accountDeletionResult.ErrorMessage}"
+                );
+
             return RemoveEntity(u => u.Id == id);
         }
     }

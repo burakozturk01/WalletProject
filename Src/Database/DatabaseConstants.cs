@@ -17,18 +17,18 @@ namespace Src.Database
         {
             public const string Sequence = "sqlite_sequence";
         }
-        
+
         public static string[] GetTableDeletionOrder()
         {
             return new[]
             {
-                TableNames.Transactions, 
-                TableNames.CoreDetailsComponents, 
+                TableNames.Transactions,
+                TableNames.CoreDetailsComponents,
                 TableNames.ActiveAccountComponents,
                 TableNames.SpendingLimitComponents,
                 TableNames.SavingGoalComponents,
-                TableNames.Accounts, 
-                TableNames.Users 
+                TableNames.Accounts,
+                TableNames.Users,
             };
         }
     }

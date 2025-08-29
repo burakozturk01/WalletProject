@@ -8,7 +8,8 @@ using Src.Shared.Repository;
 
 namespace Src.Shared.Controller
 {
-    public abstract class AppController<TEntity, TReadDTO> : ControllerBase where TEntity : class
+    public abstract class AppController<TEntity, TReadDTO> : ControllerBase
+        where TEntity : class
     {
         protected readonly IRepository<TEntity, TReadDTO> _repository;
 
@@ -32,18 +33,22 @@ namespace Src.Shared.Controller
         {
             TEntity entity = _repository.Find(predicate);
 
-            if (entity is null) return NotFound();
+            if (entity is null)
+                return NotFound();
 
             return ReadableResult(entity);
         }
 
-        protected ActionResult<ListReadDTO<TReadDTO>> FindEntities(PaginateDTO paginate, Expression<Func<TEntity, bool>> predicate)
+        protected ActionResult<ListReadDTO<TReadDTO>> FindEntities(
+            PaginateDTO paginate,
+            Expression<Func<TEntity, bool>> predicate
+        )
         {
             var entities = _repository
-            .Find(predicate, out int total)
-            .Skip(paginate.Skip)
-            .Limit(paginate.Limit)
-            .ToList();
+                .Find(predicate, out int total)
+                .Skip(paginate.Skip)
+                .Limit(paginate.Limit)
+                .ToList();
 
             return ReadableResult(entities, total);
         }
@@ -54,7 +59,8 @@ namespace Src.Shared.Controller
             {
                 TEntity entity = _repository.Find(predicate);
 
-                if (entity is null) return NotFound();
+                if (entity is null)
+                    return NotFound();
 
                 return ApplyRemove(entity);
             }
@@ -68,21 +74,29 @@ namespace Src.Shared.Controller
         {
             _repository.Add(entity);
 
-            if(!_repository.SaveChanges())
+            if (!_repository.SaveChanges())
             {
-                return UnprocessableEntity($"Falha ao criar novo registo do tipo {typeof(TEntity).Name}");
+                return UnprocessableEntity(
+                    $"Falha ao criar novo registo do tipo {typeof(TEntity).Name}"
+                );
             }
 
             return ReadableResult(entity);
         }
 
-        protected ActionResult<TReadDTO> UpdateEntity<TUpdateDTO>(TUpdateDTO data, Expression<Func<TEntity, bool>> predicate, Action<TEntity> preExecute = null)
+        protected ActionResult<TReadDTO> UpdateEntity<TUpdateDTO>(
+            TUpdateDTO data,
+            Expression<Func<TEntity, bool>> predicate,
+            Action<TEntity> preExecute = null
+        )
         {
             TEntity entity = _repository.Find(predicate);
 
-            if (entity is null) return NotFound();
+            if (entity is null)
+                return NotFound();
 
-            if(preExecute != null) preExecute(entity);
+            if (preExecute != null)
+                preExecute(entity);
 
             _repository.Update(entity, data);
 
@@ -106,15 +120,14 @@ namespace Src.Shared.Controller
             return Ok(result);
         }
 
-        protected ActionResult<ListReadDTO<TReadDTO>> ReadableResult(IEnumerable<TEntity> source, int total)
+        protected ActionResult<ListReadDTO<TReadDTO>> ReadableResult(
+            IEnumerable<TEntity> source,
+            int total
+        )
         {
             var data = source.Select(_repository.ParseToRead);
 
-            return Ok(new ListReadDTO<TReadDTO>
-            {
-                Data = data,
-                Total = total,
-            });
+            return Ok(new ListReadDTO<TReadDTO> { Data = data, Total = total });
         }
     }
 }

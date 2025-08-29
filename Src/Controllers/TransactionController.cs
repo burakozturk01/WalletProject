@@ -7,13 +7,13 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Src.Database;
 using Src.Entities;
+using Src.Repositories;
+using Src.Services;
 using Src.Shared.Controller;
 using Src.Shared.DTO;
 using Src.Shared.Repository;
-using Src.Database;
-using Src.Repositories;
-using Src.Services;
 
 namespace Src.Controllers
 {
@@ -80,7 +80,11 @@ namespace Src.Controllers
         private readonly ITransactionRepository _repository;
         private readonly ITimezoneService _timezoneService;
 
-        public TransactionController(ITransactionRepository repository, AppDbContext context, ITimezoneService timezoneService)
+        public TransactionController(
+            ITransactionRepository repository,
+            AppDbContext context,
+            ITimezoneService timezoneService
+        )
         {
             _repository = repository;
             _context = context;
@@ -97,32 +101,44 @@ namespace Src.Controllers
             return userId;
         }
 
-        private async Task<TransactionReadDTO> ConvertToUserTimezone(TransactionReadDTO dto, Guid userId)
+        private async Task<TransactionReadDTO> ConvertToUserTimezone(
+            TransactionReadDTO dto,
+            Guid userId
+        )
         {
-            dto.Timestamp = await _timezoneService.ConvertToUserTimezoneAsync(userId, dto.Timestamp);
-            dto.CreatedAt = await _timezoneService.ConvertToUserTimezoneAsync(userId, dto.CreatedAt);
-            dto.UpdatedAt = await _timezoneService.ConvertToUserTimezoneAsync(userId, dto.UpdatedAt);
+            dto.Timestamp = await _timezoneService.ConvertToUserTimezoneAsync(
+                userId,
+                dto.Timestamp
+            );
+            dto.CreatedAt = await _timezoneService.ConvertToUserTimezoneAsync(
+                userId,
+                dto.CreatedAt
+            );
+            dto.UpdatedAt = await _timezoneService.ConvertToUserTimezoneAsync(
+                userId,
+                dto.UpdatedAt
+            );
             return dto;
         }
 
         [HttpGet]
-        public ActionResult<ListReadDTO<TransactionReadDTO>> GetTransactions([FromQuery] PaginateDTO paginate)
+        public ActionResult<ListReadDTO<TransactionReadDTO>> GetTransactions(
+            [FromQuery] PaginateDTO paginate
+        )
         {
             var transactions = _repository.Get(out int totalCount);
-            
+
             if (paginate.Skip > 0)
                 transactions = transactions.Skip(paginate.Skip);
-            
+
             if (paginate.Limit > 0)
                 transactions = transactions.Take(paginate.Limit);
 
             var transactionDtos = transactions.Select(t => _repository.ParseToRead(t)).ToList();
 
-            return Ok(new ListReadDTO<TransactionReadDTO>
-            {
-                Data = transactionDtos,
-                Total = totalCount
-            });
+            return Ok(
+                new ListReadDTO<TransactionReadDTO> { Data = transactionDtos, Total = totalCount }
+            );
         }
 
         [HttpGet("{id}")]
@@ -137,17 +153,23 @@ namespace Src.Controllers
 
         [HttpGet("account/{accountId}")]
         [Authorize]
-        public async Task<ActionResult<ListReadDTO<TransactionReadDTO>>> GetTransactionsByAccount(Guid accountId, [FromQuery] PaginateDTO paginate)
+        public async Task<ActionResult<ListReadDTO<TransactionReadDTO>>> GetTransactionsByAccount(
+            Guid accountId,
+            [FromQuery] PaginateDTO paginate
+        )
         {
             var userId = GetCurrentUserId();
             if (userId == null)
                 return Unauthorized();
 
-            var transactions = _repository.Find(t => t.SourceAccountId == accountId || t.DestinationAccountId == accountId, out int totalCount);
-            
+            var transactions = _repository.Find(
+                t => t.SourceAccountId == accountId || t.DestinationAccountId == accountId,
+                out int totalCount
+            );
+
             if (paginate.Skip > 0)
                 transactions = transactions.Skip(paginate.Skip);
-            
+
             if (paginate.Limit > 0)
                 transactions = transactions.Take(paginate.Limit);
 
@@ -158,26 +180,29 @@ namespace Src.Controllers
             foreach (var dto in transactionDtos)
                 convertedDtos.Add(await ConvertToUserTimezone(dto, userId.Value));
 
-            return Ok(new ListReadDTO<TransactionReadDTO>
-            {
-                Data = convertedDtos,
-                Total = totalCount
-            });
+            return Ok(
+                new ListReadDTO<TransactionReadDTO> { Data = convertedDtos, Total = totalCount }
+            );
         }
 
         [HttpGet("user/account/{accountId}")]
         [Authorize]
-        public async Task<ActionResult<ListReadDTO<TransactionReadDTO>>> GetUserTransactionsByAccount(Guid accountId, [FromQuery] PaginateDTO paginate)
+        public async Task<
+            ActionResult<ListReadDTO<TransactionReadDTO>>
+        > GetUserTransactionsByAccount(Guid accountId, [FromQuery] PaginateDTO paginate)
         {
             var userId = GetCurrentUserId();
             if (userId == null)
                 return Unauthorized();
 
-            var transactions = _repository.Find(t => t.SourceAccountId == accountId || t.DestinationAccountId == accountId, out int totalCount);
-            
+            var transactions = _repository.Find(
+                t => t.SourceAccountId == accountId || t.DestinationAccountId == accountId,
+                out int totalCount
+            );
+
             if (paginate.Skip > 0)
                 transactions = transactions.Skip(paginate.Skip);
-            
+
             if (paginate.Limit > 0)
                 transactions = transactions.Take(paginate.Limit);
 
@@ -190,11 +215,9 @@ namespace Src.Controllers
                 convertedDtos.Add(await ConvertToUserTimezone(dto, userId.Value));
             }
 
-            return Ok(new ListReadDTO<TransactionReadDTO>
-            {
-                Data = convertedDtos,
-                Total = totalCount
-            });
+            return Ok(
+                new ListReadDTO<TransactionReadDTO> { Data = convertedDtos, Total = totalCount }
+            );
         }
 
         [HttpGet("user/{id}")]
@@ -216,24 +239,44 @@ namespace Src.Controllers
         }
 
         [HttpPost]
-        public ActionResult<TransactionReadDTO> CreateTransaction([FromBody] TransactionCreateDTO createDto)
+        public ActionResult<TransactionReadDTO> CreateTransaction(
+            [FromBody] TransactionCreateDTO createDto
+        )
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-                        if (createDto.SourceType == SourceType.ACCOUNT && createDto.SourceAccountId == null)
-                return BadRequest(new { error = "SourceAccountId is required when SourceType is ACCOUNT" });
-            
-            if (createDto.SourceType == SourceType.IBAN && string.IsNullOrEmpty(createDto.SourceIban))
+            if (createDto.SourceType == SourceType.ACCOUNT && createDto.SourceAccountId == null)
+                return BadRequest(
+                    new { error = "SourceAccountId is required when SourceType is ACCOUNT" }
+                );
+
+            if (
+                createDto.SourceType == SourceType.IBAN
+                && string.IsNullOrEmpty(createDto.SourceIban)
+            )
                 return BadRequest(new { error = "SourceIban is required when SourceType is IBAN" });
 
-                        if (createDto.DestinationType == DestinationType.ACCOUNT && createDto.DestinationAccountId == null)
-                return BadRequest(new { error = "DestinationAccountId is required when DestinationType is ACCOUNT" });
-            
-            if (createDto.DestinationType == DestinationType.IBAN && string.IsNullOrEmpty(createDto.DestinationIban))
-                return BadRequest(new { error = "DestinationIban is required when DestinationType is IBAN" });
+            if (
+                createDto.DestinationType == DestinationType.ACCOUNT
+                && createDto.DestinationAccountId == null
+            )
+                return BadRequest(
+                    new
+                    {
+                        error = "DestinationAccountId is required when DestinationType is ACCOUNT",
+                    }
+                );
 
-                        if (createDto.Amount <= 0)
+            if (
+                createDto.DestinationType == DestinationType.IBAN
+                && string.IsNullOrEmpty(createDto.DestinationIban)
+            )
+                return BadRequest(
+                    new { error = "DestinationIban is required when DestinationType is IBAN" }
+                );
+
+            if (createDto.Amount <= 0)
                 return BadRequest(new { error = "Transaction amount must be greater than zero" });
 
             using var dbTransaction = _context.Database.BeginTransaction();
@@ -242,38 +285,58 @@ namespace Src.Controllers
                 Account? sourceAccount = null;
                 Account? destinationAccount = null;
 
-                                if (createDto.SourceType == SourceType.ACCOUNT)
+                if (createDto.SourceType == SourceType.ACCOUNT)
                 {
-                    sourceAccount = _context.Accounts
-                        .Include(a => a.CoreDetails)
+                    sourceAccount = _context
+                        .Accounts.Include(a => a.CoreDetails)
                         .Where(a => a.Id == createDto.SourceAccountId && !a.IsDeleted)
                         .FirstOrDefault();
-                    
+
                     if (sourceAccount == null)
-                        return BadRequest(new { error = "Source account not found or has been deleted" });
-                    
+                        return BadRequest(
+                            new { error = "Source account not found or has been deleted" }
+                        );
+
                     if (sourceAccount.CoreDetails == null)
-                        return BadRequest(new { error = "Source account does not have core details configured" });
-                    
+                        return BadRequest(
+                            new { error = "Source account does not have core details configured" }
+                        );
+
                     if (sourceAccount.CoreDetails.Balance < createDto.Amount)
-                        return BadRequest(new { error = $"Insufficient funds. Available balance: ${sourceAccount.CoreDetails.Balance:F2}, Required: ${createDto.Amount:F2}" });
+                        return BadRequest(
+                            new
+                            {
+                                error = $"Insufficient funds. Available balance: ${sourceAccount.CoreDetails.Balance:F2}, Required: ${createDto.Amount:F2}",
+                            }
+                        );
                 }
 
-                                if (createDto.DestinationType == DestinationType.ACCOUNT)
+                if (createDto.DestinationType == DestinationType.ACCOUNT)
                 {
-                    destinationAccount = _context.Accounts
-                        .Include(a => a.CoreDetails)
+                    destinationAccount = _context
+                        .Accounts.Include(a => a.CoreDetails)
                         .Where(a => a.Id == createDto.DestinationAccountId && !a.IsDeleted)
                         .FirstOrDefault();
-                    
+
                     if (destinationAccount == null)
-                        return BadRequest(new { error = "Destination account not found or has been deleted" });
-                    
+                        return BadRequest(
+                            new { error = "Destination account not found or has been deleted" }
+                        );
+
                     if (destinationAccount.CoreDetails == null)
-                        return BadRequest(new { error = "Destination account does not have core details configured" });
+                        return BadRequest(
+                            new
+                            {
+                                error = "Destination account does not have core details configured",
+                            }
+                        );
                 }
 
-                                if (sourceAccount != null && destinationAccount != null && sourceAccount.Id == destinationAccount.Id)
+                if (
+                    sourceAccount != null
+                    && destinationAccount != null
+                    && sourceAccount.Id == destinationAccount.Id
+                )
                     return BadRequest(new { error = "Cannot transfer money to the same account" });
 
                 var transaction = new Transaction
@@ -290,13 +353,13 @@ namespace Src.Controllers
                     Amount = createDto.Amount,
                     Description = createDto.Description,
                     Timestamp = createDto.Timestamp ?? DateTime.UtcNow,
-                                        SourceAccountBalanceBefore = sourceAccount?.CoreDetails?.Balance,
+                    SourceAccountBalanceBefore = sourceAccount?.CoreDetails?.Balance,
                     DestinationAccountBalanceBefore = destinationAccount?.CoreDetails?.Balance,
                     CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
+                    UpdatedAt = DateTime.UtcNow,
                 };
 
-                                if (sourceAccount != null)
+                if (sourceAccount != null)
                 {
                     sourceAccount.CoreDetails.Balance -= createDto.Amount;
                     sourceAccount.CoreDetails.UpdatedAt = DateTime.UtcNow;
@@ -310,24 +373,27 @@ namespace Src.Controllers
                     destinationAccount.UpdatedAt = DateTime.UtcNow;
                 }
 
-                                _context.Transactions.Add(transaction);
+                _context.Transactions.Add(transaction);
                 _context.SaveChanges();
                 dbTransaction.Commit();
 
-                                var createdTransaction = _context.Transactions
+                var createdTransaction = _context
+                    .Transactions.Include(t => t.SourceAccount)
+                    .ThenInclude(a => a.CoreDetails)
                     .Include(t => t.SourceAccount)
-                        .ThenInclude(a => a.CoreDetails)
-                    .Include(t => t.SourceAccount)
-                        .ThenInclude(a => a.User) 
+                    .ThenInclude(a => a.User)
                     .Include(t => t.DestinationAccount)
-                        .ThenInclude(a => a.CoreDetails)
+                    .ThenInclude(a => a.CoreDetails)
                     .Include(t => t.DestinationAccount)
-                        .ThenInclude(a => a.User) 
+                    .ThenInclude(a => a.User)
                     .Where(t => t.Id == transaction.Id)
                     .FirstOrDefault();
 
                 if (createdTransaction == null)
-                    return StatusCode(500, new { error = "Transaction was created but could not be retrieved" });
+                    return StatusCode(
+                        500,
+                        new { error = "Transaction was created but could not be retrieved" }
+                    );
 
                 var readDto = new TransactionReadDTO
                 {
@@ -344,9 +410,10 @@ namespace Src.Controllers
                     Description = createdTransaction.Description,
                     Timestamp = createdTransaction.Timestamp,
                     SourceAccountBalanceBefore = createdTransaction.SourceAccountBalanceBefore,
-                    DestinationAccountBalanceBefore = createdTransaction.DestinationAccountBalanceBefore,
+                    DestinationAccountBalanceBefore =
+                        createdTransaction.DestinationAccountBalanceBefore,
                     CreatedAt = createdTransaction.CreatedAt,
-                    UpdatedAt = createdTransaction.UpdatedAt
+                    UpdatedAt = createdTransaction.UpdatedAt,
                 };
 
                 return Ok(readDto);
@@ -354,9 +421,14 @@ namespace Src.Controllers
             catch (Exception ex)
             {
                 dbTransaction.Rollback();
-                return StatusCode(500, new { error = $"An error occurred while processing the transaction: {ex.Message}" });
+                return StatusCode(
+                    500,
+                    new
+                    {
+                        error = $"An error occurred while processing the transaction: {ex.Message}",
+                    }
+                );
             }
         }
-
     }
 }
